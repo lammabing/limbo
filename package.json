@@ -1,0 +1,21 @@
+{
+  "name": "asyncgame",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@moebius/http-graceful-shutdown": "^1.1.0",
+    "body-parser": "^1.20.2",
+    "domparser": "^0.1.1",
+    "express": "^4.21.2",
+    "forever": "^4.0.3",
+    "kill-port": "^2.0.1"
+  }
+}

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limbo Game - Provably Fair</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <h1>Limbo Game</h1>
+            </div>
+            <div class="balance-display">
+                <span class="balance-label">Balance:</span>
+                <span class="balance-amount" id="balance">10000.00</span>
+            </div>
+        </header>
+
+        <main class="game-container">
+            <div class="game-display">
+                <div class="multiplier-display" id="multiplierDisplay">
+                    <div class="multiplier-value" id="multiplierValue">1.00x</div>
+                    <div class="game-status" id="gameStatus">Place your bet</div>
+                </div>
+                
+                <div class="game-controls">
+                    <div class="mode-tabs">
+                        <button class="tab-button active" id="manualTab">Manual</button>
+                        <button class="tab-button" id="autoTab">Auto</button>
+                    </div>
+                    
+                    <div class="tab-content">
+                        <!-- Manual Mode Content -->
+                        <div class="tab-pane active" id="manualMode">
+                            <div class="bet-controls">
+                                <div class="control-group">
+                                    <label for="betAmount">Bet Amount</label>
+                                    <div class="input-with-buttons">
+                                        <button class="decrement-btn" id="decrementBet">-</button>
+                                        <input type="number" id="betAmount" value="100" min="1" step="1">
+                                        <button class="increment-btn" id="incrementBet">+</button>
+                                    </div>
+                                    <div class="quick-amounts">
+                                        <button class="quick-amount" data-amount="10">10</button>
+                                        <button class="quick-amount" data-amount="50">50</button>
+                                        <button class="quick-amount" data-amount="100">100</button>
+                                        <button class="quick-amount" data-amount="500">500</button>
+                                        <button class="quick-amount" data-amount="1000">1000</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <label for="targetMultiplier">Target Multiplier</label>
+                                    <div class="input-with-buttons">
+                                        <button class="decrement-btn" id="decrementTarget">-</button>
+                                        <input type="number" id="targetMultiplier" value="2.00" min="1.01" step="0.01">
+                                        <button class="increment-btn" id="incrementTarget">+</button>
+                                    </div>
+                                    <div class="quick-multipliers">
+                                        <button class="quick-multiplier" data-multiplier="1.5">1.5x</button>
+                                        <button class="quick-multiplier" data-multiplier="2.0">2.0x</button>
+                                        <button class="quick-multiplier" data-multiplier="3.0">3.0x</button>
+                                        <button class="quick-multiplier" data-multiplier="5.0">5.0x</button>
+                                        <button class="quick-multiplier" data-multiplier="10.0">10.0x</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="control-group checkbox-group">
+                                <input type="checkbox" id="speedMode">
+                                <label for="speedMode">Speed Mode (Fast Gameplay)</label>
+                            </div>
+                            
+                            <div class="bet-button-container">
+                                <button class="bet-button" id="placeBet">Place Bet</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Auto Mode Content -->
+                        <div class="tab-pane" id="autoMode">
+                            <div class="auto-controls">
+                                <div class="compact-controls-row">
+                                    <div class="control-group">
+                                        <label for="autoBetAmount">Base Bet Amount</label>
+                                        <div class="input-with-buttons">
+                                            <button class="decrement-btn" id="decrementAutoBet">-</button>
+                                            <input type="number" id="autoBetAmount" value="100" min="1" step="1">
+                                            <button class="increment-btn" id="incrementAutoBet">+</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="control-group">
+                                        <label for="autoTargetMultiplier">Base Target Multiplier</label>
+                                        <div class="input-with-buttons">
+                                            <button class="decrement-btn" id="decrementAutoTarget">-</button>
+                                            <input type="number" id="autoTargetMultiplier" value="2.00" min="1.01" step="0.01">
+                                            <button class="increment-btn" id="incrementAutoTarget">+</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="control-group">
+                                        <label for="numberOfRounds">Number of Rounds</label>
+                                        <div class="input-with-buttons">
+                                            <button class="decrement-btn" id="decrementRounds">-</button>
+                                            <input type="number" id="numberOfRounds" value="10" min="1" step="1">
+                                            <button class="increment-btn" id="incrementRounds">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="compact-controls-row">
+                                    <div class="control-group">
+                                        <label for="stopProfit">Stop on Profit</label>
+                                        <div class="input-with-buttons">
+                                            <button class="decrement-btn" id="decrementStopProfit">-</button>
+                                            <input type="number" id="stopProfit" value="1000" min="0" step="10">
+                                            <button class="increment-btn" id="incrementStopProfit">+</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="control-group">
+                                        <label for="stopLoss">Stop on Loss</label>
+                                        <div class="input-with-buttons">
+                                            <button class="decrement-btn" id="decrementStopLoss">-</button>
+                                            <input type="number" id="stopLoss" value="1000" min="0" step="10">
+                                            <button class="increment-btn" id="incrementStopLoss">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="compact-controls-row">
+                                    <div class="control-group">
+                                        <label for="betMultiplier">On Loss, Multiply Bet By</label>
+                                        <div class="input-with-buttons">
+                                            <button class="decrement-btn" id="decrementBetMultiplier">-</button>
+                                            <input type="number" id="betMultiplier" value="2.00" min="1" step="0.1">
+                                            <button class="increment-btn" id="incrementBetMultiplier">+</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="control-group">
+                                        <label for="maxBetMultiplier">Max Bet Multiplier</label>
+                                        <div class="input-with-buttons">
+                                            <button class="decrement-btn" id="decrementMaxBetMultiplier">-</button>
+                                            <input type="number" id="maxBetMultiplier" value="10.00" min="1" step="0.1">
+                                            <button class="increment-btn" id="incrementMaxBetMultiplier">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="compact-controls-row">
+                                    <div class="control-group checkbox-group">
+                                        <input type="checkbox" id="autoAdjustTarget">
+                                        <label for="autoAdjustTarget">Auto Adjust Target</label>
+                                    </div>
+                                    
+                                    <div class="control-group checkbox-group">
+                                        <input type="checkbox" id="autoSpeedMode">
+                                        <label for="autoSpeedMode">Speed Mode (Fast Gameplay)</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bet-button-container">
+                                <button class="bet-button" id="startAutoBet">Start Auto Bet</button>
+                                <button class="bet-button stop-button" id="stopAutoBet" style="display: none;">Stop Auto Bet</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="game-info">
+                <div class="info-tabs">
+                    <button class="info-tab-button active" id="historyTab">History</button>
+                    <button class="info-tab-button" id="statsTab">Statistics</button>
+                    <button class="info-tab-button" id="fairTab">Provably Fair</button>
+                    <button class="info-tab-button" id="tallyTab">Tally</button>
+                    <button class="info-tab-button" id="roundsTallyTab">Rounds Tally</button>
+                    <button class="info-tab-button" id="helpTab">Help</button>
+                </div>
+                
+                <div class="info-content">
+                    <!-- History Tab Content -->
+                    <div class="info-pane active" id="historyPane">
+                        <div class="history-container">
+                            <table class="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Round</th>
+                                        <th>Bet>
+                                        <th>Target>
+                                        <th>Result>
+                                        <th>Profit>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody">
+                                    <tr>
+                                        <td colspan="5" class="no-data">No game history yet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Statistics Tab Content -->
+                    <div class="info-pane" id="statsPane">
+                        <div class="stats-container">
+                            <div class="stat-item">
+                                <div class="stat-label">Total Bets</div>
+                                <div class="stat-value" id="totalBets">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Wins</div>
+                                <div class="stat-value" id="totalWins">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Losses</div>
+                                <div class="stat-value" id="totalLosses">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Win Rate</div>
+                                <div class="stat-value" id="winRate">0%</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Total Wagered</div>
+                                <div class="stat-value" id="totalWagered">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Net Profit</div>
+                                <div class="stat-value" id="netProfit">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Provably Fair Tab Content -->
+                    <div class="info-pane" id="fairPane">
+                        <div class="fair-container">
+                            <div class="fair-info">
+                                <h3>Provably Fair System</h3>
+                                <p>Our game uses a provably fair system to ensure that all game outcomes are fair and can be verified.</p>
+                                
+                                <div class="seed-info">
+                                    <div class="seed-item">
+                                        <label>Client Seed:</label>
+                                        <div class="seed-value" id="clientSeed">Not generated</div>
+                                    </div>
+                                    <div class="seed-item">
+                                        <label>Server Seed:</label>
+                                        <div class="seed-value" id="serverSeed">Not generated</div>
+                                    </div>
+                                    <div class="seed-item">
+                                        <label>Nonce:</label>
+                                        <div class="seed-value" id="nonce">0</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="seed-controls">
+                                    <button class="seed-button" id="generateSeeds">Generate New Seeds</button>
+                                    <button class="seed-button" id="verifyBet">Verify Bet</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tally Tab Content -->
+                    <div class="info-pane" id="tallyPane">
+                        <div class="tally-container">
+                            <h3>Class Boundaries</h3>
+                            <p>These are the class boundaries used in the game for categorizing results.</p>
+                            <table class="tally-table" id="tallyTable">
+                                <thead>
+                                    <tr>
+                                        <th>Class</th>
+                                        <th>Boundary</th>
+                                        <th>Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tallyTableBody">
+                                    <!-- Class boundaries will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Rounds Tally Tab Content -->
+                    <div class="info-pane" id="roundsTallyPane">
+                        <div class="tally-container">
+                            <h3>Rounds Since Last Occurrence</h3>
+                            <p>These values show the number of rounds since a result occurred in each class.</p>
+                            <table class="tally-table" id="roundsTallyTable">
+                                <thead>
+                                    <tr>
+                                        <th>Class</th>
+                                        <th>Boundary</th>
+                                        <th>Rounds</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="roundsTallyTableBody">
+                                    <!-- Class boundaries and rounds will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Help Tab Content -->
+                    <div class="info-pane" id="helpPane">
+                        <div class="help-container">
+                            <h3>How to Play</h3>
+                            <div class="help-section">
+                                <h4>Manual Mode</h4>
+                                <ol>
+                                    <li>Enter your bet amount</li>
+                                    <li>Set your target multiplier</li>
+                                    <li>Click "Place Bet" to start the game</li>
+                                    <li>The multiplier will increase until it crashes</li>
+                                    <li>If the multiplier is above your target when it crashes, you win!</li>
+                                </ol>
+                            </div>
+                            
+                            <div class="help-section">
+                                <h4>Auto Mode</h4>
+                                <ol>
+                                    <li>Configure your betting strategy</li>
+                                    <li>Set stop conditions for profit and loss</li>
+                                    <li>Configure bet progression (martingale)</li>
+                                    <li>Click "Start Auto Bet" to begin</li>
+                                    <li>The game will automatically place bets according to your strategy</li>
+                                </ol>
+                            </div>
+                            
+                            <div class="help-section">
+                                <h4>Provably Fair</h4>
+                                <p>Our game uses a cryptographic system to ensure fairness. You can verify any game result using the client seed, server seed, and nonce.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="/script.js"></script>
+</body>
+</html>
