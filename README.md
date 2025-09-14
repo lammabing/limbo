@@ -76,6 +76,29 @@ npm start
 
 ### Endpoints
 
+### Crypto Provider Configuration
+
+The game supports multiple cryptographic implementations that can be configured:
+
+- `bch` (default): Original BCH implementation
+- `bustadice`: Alternative Bustadice implementation
+
+You can switch between implementations using the `CRYPTO_PROVIDER` environment variable:
+
+```bash
+# Start server with BCH provider (default)
+npm start
+
+# Start server with Bustadice provider
+npm run start:bustadice
+
+# Generate outcomes with BCH provider
+npm run generate:bch <clientSeed> <serverSeed> <rounds>
+
+# Generate outcomes with Bustadice provider
+npm run generate:bustadice <clientSeed> <serverSeed> <rounds>
+```
+
 #### POST /play
 Place a bet and get the game result.
 

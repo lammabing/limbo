@@ -1,5 +1,11 @@
-const { getMultiplier } = require('./crypto.bch.js');
+const cryptoProvider = require('./crypto.provider');
+const { getMultiplier } = cryptoProvider;
 const fs = require('fs');
+
+// Set default crypto provider (can be overridden via environment variable)
+const CRYPTO_PROVIDER = process.env.CRYPTO_PROVIDER || 'bch';
+cryptoProvider.setProvider(CRYPTO_PROVIDER);
+console.log(`Using crypto provider: ${cryptoProvider.getCurrentProvider()}`);
 
 function main() {
     const args = process.argv.slice(2);

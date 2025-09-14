@@ -1,10 +1,16 @@
 const express = require('express');
 const path = require('path');
-const { getMultiplier } = require('./crypto.bch');
+const cryptoProvider = require('./crypto.provider');
+const { getMultiplier } = cryptoProvider;
 const bodyParser = require('body-parser');
 
 const app = express();
 const port = 3500;
+
+// Set default crypto provider (can be overridden via environment variable)
+const CRYPTO_PROVIDER = process.env.CRYPTO_PROVIDER || 'bch';
+cryptoProvider.setProvider(CRYPTO_PROVIDER);
+console.log(`Using crypto provider: ${cryptoProvider.getCurrentProvider()}`);
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')));
