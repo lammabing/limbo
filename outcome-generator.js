@@ -52,15 +52,51 @@ function main() {
     // Display highest outcome
     console.log(`\nHighest outcome: Round ${highestRound} with ${highestMultiplier}x`);
 
+    // Display top 10 highest outcomes
+    displayTopOutcomes(csvContent);
+
     if (threshold !== null) {
-        const runTimeLength = getRunTimeLength(threshold);
-        console.log(`Run time length below ${threshold}: ${runTimeLength} rounds`);
+        const runTimeLengths = getRunTimeLengths(threshold, n);
+        console.log(`\nRun time lengths below ${threshold}:`);
+        runTimeLengths.forEach((length, index) => {
+            if (index === runTimeLengths.length - 1 && length === -1) {
+                console.log(`Run ${index + 1}: X`);
+            } else {
+                console.log(`Run ${index + 1}: ${length} rounds`);
+            }
+        });
     }
 }
 
-function getRunTimeLength(threshold) {
+function displayTopOutcomes(csvContent) {
+    const lines = csvContent.trim().split('\n');
+    const outcomes = [];
+
+    // Skip header and parse outcomes
+    for (let i = 1; i < lines.length; i++) {
+        const [round, multiplier] = lines[i].split(',');
+        outcomes.push({
+            round: parseInt(round),
+            multiplier: parseFloat(multiplier)
+        });
+    }
+
+    // Sort by multiplier in descending order
+    outcomes.sort((a, b) => b.multiplier - a.multiplier);
+
+    // Display top 10
+    console.log('\nTop 10 highest outcomes:');
+    const count = Math.min(10, outcomes.length);
+    for (let i = 0; i < count; i++) {
+        console.log(`Round ${outcomes[i].round}: ${outcomes[i].multiplier}x`);
+    }
+}
+
+function getRunTimeLengths(threshold, totalRounds) {
     const csvContent = fs.readFileSync('outcomes.csv', 'utf8');
     const lines = csvContent.trim().split('\n');
+    const runTimeLengths = [];
+    let count = 0;
 
     // Skip header
     for (let i = 1; i < lines.length; i++) {
@@ -68,11 +104,17 @@ function getRunTimeLength(threshold) {
         const mult = parseFloat(multiplier);
 
         if (mult >= threshold) {
-            return i - 1; // Return the count of rounds below threshold
+            runTimeLengths.push(count);
+            count = 0; // Reset count after meeting threshold
+        } else {
+            count++; // Increment count for rounds below threshold
         }
     }
 
-    return lines.length - 1; // All rounds are below threshold
+    // Always add the final count as -1 to indicate the run ended without hitting threshold
+    runTimeLengths.push(-1);
+
+    return runTimeLengths;
 }
 
 if (require.main === module) {
