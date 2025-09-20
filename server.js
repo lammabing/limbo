@@ -5,9 +5,10 @@ const { getMultiplier } = cryptoProvider;
 const bodyParser = require('body-parser');
 
 const app = express();
-const port = 3500;
+const port = 3150;
 
 // Set default crypto provider (can be overridden via environment variable)
+// Available providers: 'bch', 'bustadice', 'stake'
 const CRYPTO_PROVIDER = process.env.CRYPTO_PROVIDER || 'bch';
 cryptoProvider.setProvider(CRYPTO_PROVIDER);
 console.log(`Using crypto provider: ${cryptoProvider.getCurrentProvider()}`);
@@ -28,9 +29,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Game state storage (in a real application, this would be in a database)
 const gameSessions = new Map();
 
-// Route to serve the HTML form
+// Route to serve the main HTML form
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Route to serve the bet verifier HTML form
+app.get('/verifier', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'verifier.html'));
 });
 
 // API endpoint to play a game round

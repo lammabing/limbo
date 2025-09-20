@@ -3,7 +3,8 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Metrophobic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    letter-spacing: 0.02em;
 }
 
 /* Smooth scrolling */
@@ -91,11 +92,12 @@ body {
 }
 
 .logo h1 {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 600;
     background: linear-gradient(90deg, #4cc9f0, #4361ee);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    letter-spacing: 0.5px;
 }
 
 .balance-display {
@@ -109,14 +111,41 @@ body {
 }
 
 .balance-label {
-    font-size: 14px;
-    opacity: 0.8;
+    font-size: 15px;
+    opacity: 0.9;
+    font-weight: 400;
 }
 
 .balance-amount {
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 600;
     color: #4cc9f0;
+    text-shadow: 0 0 10px rgba(76, 201, 240, 0.3);
+}
+
+/* Verify Link */
+.verify-link {
+    margin-left: 20px;
+}
+
+.verify-button {
+    background: rgba(76, 201, 240, 0.2);
+    border: 1px solid #4cc9f0;
+    border-radius: 30px;
+    padding: 10px 20px;
+    color: #4cc9f0;
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.verify-button:hover {
+    background: rgba(76, 201, 240, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 201, 240, 0.2);
 }
 
 /* Game Container */
@@ -147,23 +176,28 @@ body {
 }
 
 .multiplier-value {
-    font-size: 72px;
+    font-size: 82px;
     font-weight: 700;
     margin-bottom: 10px;
     background: linear-gradient(90deg, #4cc9f0, #4361ee);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     transition: all 0.3s ease;
+    letter-spacing: -0.5px;
+    text-shadow: 0 0 15px rgba(76, 201, 240, 0.2);
 }
 
 .multiplier-value.crashed {
     color: #f72585;
     -webkit-text-fill-color: #f72585;
+    text-shadow: 0 0 15px rgba(247, 37, 133, 0.3);
 }
 
 .game-status {
-    font-size: 18px;
-    opacity: 0.8;
+    font-size: 20px;
+    opacity: 0.9;
+    font-weight: 400;
+    letter-spacing: 0.3px;
 }
 
 /* Game Controls */
@@ -185,17 +219,20 @@ body {
 .tab-button, .info-tab-button {
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.6);
-    padding: 12px 24px;
-    font-size: 16px;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 14px 26px;
+    font-size: 17px;
     cursor: pointer;
     border-bottom: 2px solid transparent;
     transition: all 0.3s ease;
+    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 
 .tab-button.active, .info-tab-button.active {
     color: #4cc9f0;
     border-bottom: 2px solid #4cc9f0;
+    font-weight: 600;
 }
 
 .tab-button:hover, .info-tab-button:hover {
@@ -240,9 +277,11 @@ body {
 
 .control-group label {
     display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    opacity: 0.8;
+    margin-bottom: 10px;
+    font-size: 15px;
+    opacity: 0.9;
+    font-weight: 500;
+    letter-spacing: 0.2px;
 }
 
 .input-with-buttons {
@@ -256,20 +295,24 @@ body {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    padding: 12px;
+    padding: 14px;
     color: #fff;
-    font-size: 16px;
-    width: 20px;
+    font-size: 17px;
+    max-width: 150px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
 }
 
 input[type="number"] {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    padding: 12px;
+    padding: 14px;
     color: #fff;
-    font-size: 16px;
-    width: 20px;
+    font-size: 17px;
+    max-width: 150px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
 }
 
 .input-with-buttons input:focus {
@@ -306,16 +349,19 @@ input[type="number"] {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 6px;
-    padding: 8px 12px;
+    padding: 10px 14px;
     color: #fff;
-    font-size: 14px;
+    font-size: 15px;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 
 .quick-amount:hover, .quick-multiplier:hover {
     background: rgba(76, 201, 240, 0.2);
     border-color: #4cc9f0;
+    transform: translateY(-2px);
 }
 
 /* Bet Button */
@@ -327,13 +373,16 @@ input[type="number"] {
     width: 100%;
     background: linear-gradient(90deg, #4cc9f0, #4361ee);
     border: none;
-    border-radius: 10px;
-    padding: 16px;
+    border-radius: 12px;
+    padding: 18px;
     color: #fff;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-weight: 700;
 }
 
 .bet-button:hover {
@@ -382,14 +431,17 @@ input[type="number"] {
 }
 
 .tally-table th, .tally-table td {
-    padding: 12px;
+    padding: 14px;
     text-align: left;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-weight: 500;
 }
 
 .tally-table th {
     font-weight: 600;
-    opacity: 0.8;
+    opacity: 0.9;
+    font-size: 15px;
+    letter-spacing: 0.3px;
 }
 
 .tally-table tr:hover {
@@ -426,15 +478,18 @@ input[type="number"] {
 }
 
 .stat-label {
-    font-size: 14px;
-    opacity: 0.8;
-    margin-bottom: 8px;
+    font-size: 15px;
+    opacity: 0.9;
+    margin-bottom: 10px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 
 .stat-value {
-    font-size: 24px;
-    font-weight: 600;
+    font-size: 28px;
+    font-weight: 700;
     color: #4cc9f0;
+    letter-spacing: -0.2px;
 }
 
 /* Provably Fair */
@@ -469,16 +524,20 @@ input[type="number"] {
 }
 
 .seed-item label {
-    font-size: 14px;
-    opacity: 0.8;
+    font-size: 15px;
+    opacity: 0.9;
+    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 
 .seed-value {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 6px;
-    padding: 10px;
-    font-family: monospace;
+    padding: 12px;
+    font-family: 'Metrophobic', monospace;
     word-break: break-all;
+    font-size: 14px;
+    letter-spacing: 0.5px;
 }
 
 .seed-controls {
@@ -517,29 +576,36 @@ input[type="number"] {
 }
 
 .help-section h4 {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     color: #4361ee;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
 }
 
 .help-section ol {
-    padding-left: 20px;
+    padding-left: 24px;
 }
 
 .help-section li {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     opacity: 0.9;
+    font-weight: 400;
+    letter-spacing: 0.2px;
 }
 
 .help-section p {
-    opacity: 0.8;
-    line-height: 1.6;
+    opacity: 0.9;
+    line-height: 1.7;
+    letter-spacing: 0.2px;
 }
 
 /* Checkbox Group */
-.checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.checkbox-group label {
+    font-size: 15px;
+    opacity: 0.9;
+    font-weight: 400;
+    letter-spacing: 0.2px;
 }
 
 .checkbox-group input[type="checkbox"] {
@@ -561,7 +627,7 @@ input[type="number"] {
     }
     
     .multiplier-value {
-        font-size: 56px;
+        font-size: 64px;
     }
     
     .stats-container {
@@ -583,6 +649,19 @@ input[type="number"] {
     
     .compact-controls-row .control-group {
         margin-bottom: 15px;
+    }
+    
+    .tab-button, .info-tab-button {
+        padding: 12px 20px;
+        font-size: 15px;
+    }
+    
+    .logo h1 {
+        font-size: 24px;
+    }
+    
+    .stat-value {
+        font-size: 24px;
     }
 }
 
@@ -610,19 +689,34 @@ input[type="number"] {
     }
 }
 
+@keyframes multiplierAnimation {
+    0% {
+        transform: scale(1);
+        text-shadow: 0 0 5px rgba(76, 201, 240, 0.5);
+    }
+    50% {
+        transform: scale(1.1);
+        text-shadow: 0 0 20px rgba(76, 201, 240, 1);
+    }
+    100% {
+        transform: scale(1);
+        text-shadow: 0 0 5px rgba(76, 201, 240, 0.5);
+    }
+}
+
 .game-display, .game-info {
     animation: fadeIn 0.5s ease-out;
 }
 
 .multiplier-value.animating {
-    animation: pulse 1s infinite;
+    animation: multiplierAnimation 0.5s infinite;
 }
 /* Notifications */
 .notification {
     position: fixed;
     top: 20px;
     right: 20px;
-    padding: 15px 20px;
+    padding: 16px 22px;
     border-radius: 8px;
     color: #fff;
     font-weight: 500;
@@ -631,6 +725,8 @@ input[type="number"] {
     opacity: 0;
     transform: translateY(-20px);
     transition: opacity 0.3s ease, transform 0.3s ease;
+    font-size: 16px;
+    letter-spacing: 0.3px;
 }
 
 .notification.show {
@@ -661,7 +757,14 @@ input[type="number"] {
 
 .history-table th,
 .history-table td {
-    padding: 10px 12px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.history-table th {
+    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 
 .profit-positive {
@@ -834,4 +937,12 @@ input[type="number"] {
 /* Profit/loss color transitions */
 .profit-positive, .profit-negative {
     transition: color 0.3s ease;
+}
+
+/* Checkbox Group */
+.checkbox-group label {
+    font-size: 15px;
+    opacity: 0.9;
+    font-weight: 400;
+    letter-spacing: 0.2px;
 }

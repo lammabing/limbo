@@ -6,8 +6,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "start:bustadice": "CRYPTO_PROVIDER=bustadice node server.js",
+    "start:stake": "CRYPTO_PROVIDER=stake node server.js",
     "generate:bch": "node outcome-generator.js",
-    "generate:bustadice": "CRYPTO_PROVIDER=bustadice node outcome-generator.js"
+    "generate:bustadice": "CRYPTO_PROVIDER=bustadice node outcome-generator.js",
+    "generate:stake": "CRYPTO_PROVIDER=stake node outcome-generator.js"
   },
   "keywords": [],
   "author": "",

@@ -82,6 +82,7 @@ The game supports multiple cryptographic implementations that can be configured:
 
 - `bch` (default): Original BCH implementation
 - `bustadice`: Alternative Bustadice implementation
+- `stake`: Stake.com implementation
 
 You can switch between implementations using the `CRYPTO_PROVIDER` environment variable:
 
@@ -90,13 +91,19 @@ You can switch between implementations using the `CRYPTO_PROVIDER` environment v
 npm start
 
 # Start server with Bustadice provider
-npm run start:bustadice
+CRYPTO_PROVIDER=bustadice npm start
+
+# Start server with Stake provider
+CRYPTO_PROVIDER=stake npm start
 
 # Generate outcomes with BCH provider
 npm run generate:bch <clientSeed> <serverSeed> <rounds>
 
 # Generate outcomes with Bustadice provider
 npm run generate:bustadice <clientSeed> <serverSeed> <rounds>
+
+# Generate outcomes with Stake provider
+npm run generate:stake <clientSeed> <serverSeed> <rounds>
 ```
 
 #### POST /play

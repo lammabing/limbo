@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Limbo Game - Provably Fair</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Metrophobic&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -17,6 +20,11 @@
             <div class="balance-display">
                 <span class="balance-label">Balance:</span>
                 <span class="balance-amount" id="balance">10000.00</span>
+            </div>
+            <div class="verify-link">
+                <a href="/verifier.html" target="_blank" class="verify-button">
+                    <i class="fas fa-clipboard-check"></i> Verify Bets
+                </a>
             </div>
         </header>
 
@@ -262,6 +270,7 @@
                                 <div class="seed-controls">
                                     <button class="seed-button" id="generateSeeds">Generate New Seeds</button>
                                     <button class="seed-button" id="verifyBet">Verify Bet</button>
+                                    <a href="/verifier.html" class="seed-button" target="_blank">Advanced Verifier</a>
                                 </div>
                             </div>
                         </div>
@@ -278,6 +287,7 @@
                                         <th>Class</th>
                                         <th>Boundary</th>
                                         <th>Count</th>
+                                        <th>Due Ratio</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tallyTableBody">
@@ -298,6 +308,7 @@
                                         <th>Class</th>
                                         <th>Boundary</th>
                                         <th>Rounds</th>
+                                        <th>Due Ratio</th>
                                     </tr>
                                 </thead>
                                 <tbody id="roundsTallyTableBody">

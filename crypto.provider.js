@@ -1,10 +1,12 @@
 const { getMultiplier: getMultiplierBCH } = require('./crypto.bch');
 const { getMultiplier: getMultiplierBustadice } = require('./crypto.bustadice');
+const { getMultiplier: getMultiplierStake } = require('./crypto.stake');
 
 // Map of available crypto providers
 const providers = {
   'bch': getMultiplierBCH,
-  'bustadice': getMultiplierBustadice
+  'bustadice': getMultiplierBustadice,
+  'stake': getMultiplierStake
 };
 
 // Default provider
@@ -12,7 +14,7 @@ let currentProvider = 'bch';
 
 /**
  * Set the crypto provider to use
- * @param {string} provider - The provider name ('bch' or 'bustadice')
+ * @param {string} provider - The provider name ('bch', 'bustadice', or 'stake')
  */
 function setProvider(provider) {
   if (!providers[provider]) {

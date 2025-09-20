@@ -441,7 +441,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Skip animation and immediately end the game
             elements.multiplierValue.classList.remove('animating');
             elements.multiplierValue.classList.remove('crashed');
-            elements.gameStatus.textContent = 'Game in progress...';
+            // Set the final multiplier value immediately
+            elements.multiplierValue.textContent = targetMultiplier.toFixed(2) + 'x';
+            elements.gameStatus.textContent = 'Game completed';
             
             // Small delay to show the status message
             setTimeout(() => {
@@ -471,6 +473,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Check if animation is complete
                 if (progress >= 1) {
                     clearInterval(animationInterval);
+                    // Set the final value to ensure it matches the target
+                    elements.multiplierValue.textContent = targetMultiplier.toFixed(2) + 'x';
                     endGame(targetMultiplier);
                 }
             }, 30); // Update more frequently for smoother animation
@@ -828,6 +832,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Skip animation and immediately end the game
             elements.multiplierValue.classList.remove('animating');
             elements.multiplierValue.classList.remove('crashed');
+            // Set the final multiplier value immediately
+            elements.multiplierValue.textContent = targetMultiplier.toFixed(2) + 'x';
+            elements.gameStatus.textContent = 'Game completed';
             
             // Small delay to show the status message
             setTimeout(() => {
@@ -855,6 +862,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Check if animation is complete
                 if (progress >= 1) {
                     clearInterval(animationInterval);
+                    // Set the final value to ensure it matches the target
+                    elements.multiplierValue.textContent = targetMultiplier.toFixed(2) + 'x';
                     endAutoGame(targetMultiplier);
                 }
             }, 30); // Update more frequently for smoother animation
@@ -1005,36 +1014,51 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.tallyTableBody.innerHTML = '';
         
         if (classBoundaries.length === 0) {
-            elements.tallyTableBody.innerHTML = '<tr><td colspan="3">Loading class boundaries...</td></tr>';
+            elements.tallyTableBody.innerHTML = '<tr><td colspan="4">Loading class boundaries...</td></tr>';
             return;
         }
         
         // Add a row for class 1 (0 to first boundary)
+        const firstBoundary = classBoundaries[0];
+        const firstCount = classCounts[0];
+        const firstDueRatio = firstCount > 0 ? (firstCount / firstBoundary) : 0;
         const firstRow = document.createElement('tr');
         firstRow.innerHTML = `
             <td>1</td>
-            <td>0 - ${classBoundaries[0]}</td>
-            <td>${classCounts[0]}</td>
+            <td>0 - ${firstBoundary}</td>
+            <td>${firstCount}</td>
+            <td>${firstDueRatio.toFixed(2)}</td>
         `;
         elements.tallyTableBody.appendChild(firstRow);
         
         // Add rows for classes 2 to n-1 (between boundaries)
         for (let i = 1; i < classBoundaries.length; i++) {
+            const lowerBoundary = classBoundaries[i-1] + 0.01;
+            const upperBoundary = classBoundaries[i];
+            const count = classCounts[i];
+            const dueRatio = count > 0 ? (count / upperBoundary) : 0;
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${i + 1}</td>
-                <td>${classBoundaries[i-1] + 0.01} - ${classBoundaries[i]}</td>
-                <td>${classCounts[i]}</td>
+                <td>${lowerBoundary} - ${upperBoundary}</td>
+                <td>${count}</td>
+                <td>${dueRatio.toFixed(2)}</td>
             `;
             elements.tallyTableBody.appendChild(row);
         }
         
         // Add a row for the last class (above the last boundary)
+        const lastLowerBoundary = classBoundaries[classBoundaries.length - 1] + 0.01;
+        const lastCount = classCounts[classBoundaries.length];
+        // For the last class, we'll use a default upper boundary for ratio calculation
+        // This is a simplification - in reality, there's no upper boundary for this class
+        const lastDueRatio = lastCount > 0 ? (lastCount / (lastLowerBoundary * 2)) : 0; // Using double the lower boundary as a proxy
         const lastRow = document.createElement('tr');
         lastRow.innerHTML = `
             <td>${classBoundaries.length + 1}</td>
-            <td>${classBoundaries[classBoundaries.length - 1] + 0.01}+</td>
-            <td>${classCounts[classBoundaries.length]}</td>
+            <td>${lastLowerBoundary}+</td>
+            <td>${lastCount}</td>
+            <td>${lastDueRatio.toFixed(2)}</td>
         `;
         elements.tallyTableBody.appendChild(lastRow);
         
@@ -1052,36 +1076,51 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.roundsTallyTableBody.innerHTML = '';
         
         if (classBoundaries.length === 0) {
-            elements.roundsTallyTableBody.innerHTML = '<tr><td colspan="3">Loading class boundaries...</td></tr>';
+            elements.roundsTallyTableBody.innerHTML = '<tr><td colspan="4">Loading class boundaries...</td></tr>';
             return;
         }
         
         // Add a row for class 1 (0 to first boundary)
+        const firstBoundary = classBoundaries[0];
+        const firstRounds = roundsSinceLastOccurrence[0];
+        const firstDueRatio = firstRounds / firstBoundary;
         const firstRow = document.createElement('tr');
         firstRow.innerHTML = `
             <td>1</td>
-            <td>0 - ${classBoundaries[0]}</td>
-            <td>${roundsSinceLastOccurrence[0]}</td>
+            <td>0 - ${firstBoundary}</td>
+            <td>${firstRounds}</td>
+            <td>${firstDueRatio.toFixed(2)}</td>
         `;
         elements.roundsTallyTableBody.appendChild(firstRow);
         
         // Add rows for classes 2 to n-1 (between boundaries)
         for (let i = 1; i < classBoundaries.length; i++) {
+            const lowerBoundary = classBoundaries[i-1] + 0.01;
+            const upperBoundary = classBoundaries[i];
+            const rounds = roundsSinceLastOccurrence[i];
+            const dueRatio = rounds / upperBoundary;
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${i + 1}</td>
-                <td>${classBoundaries[i-1] + 0.01} - ${classBoundaries[i]}</td>
-                <td>${roundsSinceLastOccurrence[i]}</td>
+                <td>${lowerBoundary} - ${upperBoundary}</td>
+                <td>${rounds}</td>
+                <td>${dueRatio.toFixed(2)}</td>
             `;
             elements.roundsTallyTableBody.appendChild(row);
         }
         
         // Add a row for the last class (above the last boundary)
+        const lastLowerBoundary = classBoundaries[classBoundaries.length - 1] + 0.01;
+        const lastRounds = roundsSinceLastOccurrence[classBoundaries.length];
+        // For the last class, we'll use a default upper boundary for ratio calculation
+        // This is a simplification - in reality, there's no upper boundary for this class
+        const lastDueRatio = lastRounds / (lastLowerBoundary * 2); // Using double the lower boundary as a proxy
         const lastRow = document.createElement('tr');
         lastRow.innerHTML = `
             <td>${classBoundaries.length + 1}</td>
-            <td>${classBoundaries[classBoundaries.length - 1] + 0.01}+</td>
-            <td>${roundsSinceLastOccurrence[classBoundaries.length]}</td>
+            <td>${lastLowerBoundary}+</td>
+            <td>${lastRounds}</td>
+            <td>${lastDueRatio.toFixed(2)}</td>
         `;
         elements.roundsTallyTableBody.appendChild(lastRow);
     }
