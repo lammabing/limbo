@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bet Verifier</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+        .info {
+            background-color: #d9edf7;
+            color: #31708f;
+            border: 1px solid #bce8f1;
+        }
+        .details {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-left: 3px solid #4CAF50;
+        }
+        .loading {
+            text-align: center;
+            display: none;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bet Verifier</h1>
+        <form id="verifyForm">
+            <div class="form-group">
+                <label for="clientSeed">Client Seed:</label>
+                <input type="text" id="clientSeed" name="clientSeed" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="serverSeed">Server Seed:</label>
+                <input type="text" id="serverSeed" name="serverSeed" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="nonce">Nonce:</label>
+                <input type="number" id="nonce" name="nonce" min="0" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="provider">Crypto Provider:</label>
+                <select id="provider" name="provider">
+                    <option value="bch">BCH</option>
+                    <option value="bustadice">Bustadice</option>
+                    <option value="stake">Stake</option>
+                </select>
+            </div>
+            
+            <button type="submit">Verify Bet</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Verifying...</p>
+        </div>
+        
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        // Crypto provider implementations
+        const cryptoProviders = {
+            bch: function(nonce, clientSeed, serverSeed) {
+                // BCH implementation from crypto.bch.js
+                function* bytesGenerator(serverSeed, clientSeed, nonce) {
+                    let currentRound = 0;
+                    let currentRoundCursor = 0;
+
+                    while (true) {
+                        const hmac = CryptoJS.HmacSHA256(`${clientSeed}:${nonce}:${currentRound}`, serverSeed);
+                        const buffer = CryptoJS.enc.Hex.parse(hmac.toString());
+
+                        while (currentRoundCursor < 32) {
+                            yield buffer.words[currentRoundCursor >> 2] >>> (24 - (currentRoundCursor & 3) * 8) & 0xff;
+                            currentRoundCursor += 1;
+                        }
+
+                        currentRoundCursor = 0;
+                        currentRound += 1;
+                    }
+                }
+
+                function* floatsGenerator(serverSeed, clientSeed, nonce) {
+                    const byteRng = bytesGenerator(serverSeed, clientSeed, nonce);
+
+                    while (true) {
+                        const bytes = Array(4)
+                            .fill(0)
+                            .map(() => byteRng.next().value);
+
+                        const float = bytes.reduce((result, value, i) => {
+                            const divider = Math.pow(256, i + 1);
+                            const partialResult = value / divider;
+                            return result + partialResult;
+                        }, 0);
+
+                        yield float;
+                    }
+                }
+
+                const floatGen = floatsGenerator(serverSeed, clientSeed, nonce);
+                const float = floatGen.next().value;
+
+                const m = 100000000;
+                const n = Math.floor(float * m) + 1;
+
+                const crashPoint = Math.max((m / n) * (1 - 0.02), 1);
+                const multiplier = Math.floor(crashPoint * 100) / 100;
+
+                return multiplier;
+            },
+            
+            bustadice: function(nonce, clientSeed, serverSeed) {
+                // Bustadice implementation from crypto.bustadice.js
+                const [auditSeed, gameSeed] = serverSeed.split('_').filter((v) => !!v);
+                
+                const wagerHash = CryptoJS.HmacSHA256('' + nonce, auditSeed).toString();
+                let hash = CryptoJS.HmacSHA256(wagerHash, `${gameSeed}|${clientSeed}|${nonce}`).toString();
+                hash = hash.substr(0, 52 / 4);
+
+                // convert to a number that is uniformly distributed in [0; 1)
+                const X = parseInt(hash, 16) / Math.pow(2, 52);
+                let multiplier = Math.floor(99 / (1 - X)) / 100;
+                if (multiplier <= 1) {
+                    multiplier = 1.01;
+                }
+                
+                return multiplier;
+            },
+            
+            stake: function(nonce, clientSeed, serverSeed) {
+                // Stake implementation from crypto.stake.js
+                const [auditSeed, gameSeed] = serverSeed.split('_').filter((v) => !!v);
+                
+                const wagerHash = CryptoJS.HmacSHA256('' + nonce, auditSeed).toString();
+                let hash = CryptoJS.HmacSHA256(wagerHash, `${gameSeed}|${clientSeed}|${nonce}`).toString();
+                hash = hash.substr(0, 52 / 4);
+
+                // convert to a number that is uniformly distributed in [0; 1)
+                const X = parseInt(hash, 16) / Math.pow(2, 52);
+                let multiplier = Math.floor(99 / (1 - X)) / 100;
+                if (multiplier <= 1) {
+                    multiplier = 1.01;
+                }
+                
+                return multiplier;
+            }
+        };
+
+        document.getElementById('verifyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const clientSeed = document.getElementById('clientSeed').value;
+            const serverSeed = document.getElementById('serverSeed').value;
+            const nonce = parseInt(document.getElementById('nonce').value);
+            const expectedMultiplier = parseFloat(document.getElementById('expectedMultiplier').value);
+            const provider = document.getElementById('provider').value;
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            
+            // Calculate the multiplier using the selected provider
+            try {
+                const calculatedMultiplier = cryptoProviders[provider](nonce, clientSeed, serverSeed);
+                const isValid = Math.abs(calculatedMultiplier - expectedMultiplier) < 0.01;
+                
+                // Display result
+                const resultDiv = document.getElementById('result');
+                resultDiv.className = 'result ' + (isValid ? 'success' : 'error');
+                resultDiv.innerHTML = `
+                    <h3>Verification ${isValid ? 'Successful' : 'Failed'}</h3>
+                    <p><strong>Expected Multiplier:</strong> ${expectedMultiplier.toFixed(2)}x</p>
+                    <p><strong>Calculated Multiplier:</strong> ${calculatedMultiplier.toFixed(2)}x</p>
+                    <p><strong>Provider:</strong> ${provider.toUpperCase()}</p>
+                    <p><strong>Status:</strong> ${isValid ? 'Valid' : 'Invalid'}</p>
+                    
+                    <div class="details">
+                        <h4>Verification Details:</h4>
+                        <p><strong>Client Seed:</strong> ${clientSeed}</p>
+                        <p><strong>Server Seed:</strong> ${serverSeed}</p>
+                        <p><strong>Nonce:</strong> ${nonce}</p>
+                    </div>
+                `;
+                
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                const resultDiv = document.getElementById('result');
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>Verification Error</h3>
+                    <p>An error occurred during verification: ${error.message}</p>
+                `;
+                resultDiv.style.display = 'block';
+            }
+            
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+        });
+    </script>
+    
+    <!-- Include CryptoJS library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</body>
+</html>
