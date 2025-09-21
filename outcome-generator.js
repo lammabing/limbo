@@ -1,31 +1,45 @@
 const cryptoProvider = require('./crypto.provider');
 const { getMultiplier } = cryptoProvider;
 const fs = require('fs');
+const path = require('path');
 
 // Set default crypto provider (can be overridden via environment variable)
 const CRYPTO_PROVIDER = process.env.CRYPTO_PROVIDER || 'bch';
 cryptoProvider.setProvider(CRYPTO_PROVIDER);
 console.log(`Using crypto provider: ${cryptoProvider.getCurrentProvider()}`);
 
+// Function to generate random alphanumeric string
+function generateRandomString(length) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+}
+
 function main() {
     const args = process.argv.slice(2);
-    if (args.length < 3) {
-        console.log('Usage: node outcome-generator.js <clientSeed> <serverSeed> <n> [threshold]');
-        console.log('Example: node outcome-generator.js abc123 def456 10 2.0');
+    if (args.length < 1) {
+        console.log('Usage: node outcome-generator.js <rounds> [threshold] [clientSeed] [serverSeed]');
+        console.log('Example: node outcome-generator.js 10 2.0 abc123 def456');
         process.exit(1);
     }
 
-    const clientSeed = args[0];
-    const serverSeed = args[1];
-    const n = parseInt(args[2], 10);
-    const threshold = args.length > 3 ? parseFloat(args[3]) : null;
+    const n = parseInt(args[0], 10);
+    const threshold = args.length > 1 ? parseFloat(args[1]) : null;
+    let clientSeed = args.length > 2 ? args[2] : generateRandomString(32);
+    let serverSeed = args.length > 3 ? args[3] : generateRandomString(32);
 
     if (isNaN(n) || n <= 0) {
-        console.log('Error: n must be a positive integer');
+        console.log('Error: rounds must be a positive integer');
         process.exit(1);
     }
 
-    console.log(`Generating outcomes for ${n} rounds with clientSeed: ${clientSeed}, serverSeed: ${serverSeed}`);
+    console.log(`Generating outcomes for ${n} rounds`);
+    console.log(`Threshold: ${threshold !== null ? threshold : 'Not specified'}`);
+    console.log(`Client Seed: ${clientSeed}`);
+    console.log(`Server Seed: ${serverSeed}`);
     console.log('Outcomes:');
 
     let csvContent = 'Round,Multiplier\n';
@@ -45,7 +59,16 @@ function main() {
         }
     }
 
-    const outputFile = 'outcomes.csv';
+    // Create csv-output directory if it doesn't exist
+    const outputDir = path.join(__dirname, 'csv-output');
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    // Create timestamped filename
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const outputFile = path.join(outputDir, `outcomes-${timestamp}.csv`);
+    
     fs.writeFileSync(outputFile, csvContent);
     console.log(`\nOutcomes saved to ${outputFile}`);
 
@@ -56,7 +79,7 @@ function main() {
     displayTopOutcomes(csvContent);
 
     if (threshold !== null) {
-        const runTimeLengths = getRunTimeLengths(threshold, n);
+        const runTimeLengths = getRunTimeLengths(threshold, n, outputFile);
         console.log(`\nRun time lengths below ${threshold}:`);
         runTimeLengths.forEach((length, index) => {
             if (index === runTimeLengths.length - 1 && length === -1) {
@@ -92,8 +115,8 @@ function displayTopOutcomes(csvContent) {
     }
 }
 
-function getRunTimeLengths(threshold, totalRounds) {
-    const csvContent = fs.readFileSync('outcomes.csv', 'utf8');
+function getRunTimeLengths(threshold, totalRounds, outputFile) {
+    const csvContent = fs.readFileSync(outputFile, 'utf8');
     const lines = csvContent.trim().split('\n');
     const runTimeLengths = [];
     let count = 0;
