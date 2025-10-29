@@ -14,13 +14,26 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "A modern, responsive limbo/target game with both manual and automated betting modes. Built with Node.js, Express, and vanilla JavaScript, featuring a provably fair system using cryptographic algorithms.",
   "dependencies": {
     "@moebius/http-graceful-shutdown": "^1.1.0",
     "body-parser": "^1.20.2",
+    "clipboardy": "^5.0.0",
     "domparser": "^0.1.1",
     "express": "^4.21.2",
     "forever": "^4.0.3",
     "kill-port": "^2.0.1"
-  }
+  },
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lammabing/limbo.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/lammabing/limbo/issues"
+  },
+  "homepage": "https://github.com/lammabing/limbo#readme"
 }

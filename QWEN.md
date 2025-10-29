@@ -17,7 +17,16 @@ The game simulates a crypto betting experience where players can place bets on m
 ## Project Structure
 
 ```
-/mnt/g/www/crypto/
+/mnt/g/www/limbo/
+├── cli-scripts/            # CLI tools and utility scripts
+│   ├── cost-calculation.js # Cost calculation functions
+│   ├── multi-outcome-generator.js # Multiple outcome generator
+│   ├── outcome-generator.js # Outcome generator
+│   ├── profit-calculation.js # Profit calculation functions
+│   ├── profit-simulation.js # Profit simulation functions
+│   ├── random-string-samples.js # Random string examples with clipboard support
+│   └── randomStringGenerator.js # Random string generation utility
+├── csv-output/             # Generated CSV files from CLI tools
 ├── public/                 # Static files served by Express
 │   ├── index.html         # Main application HTML
 │   ├── script.js          # Client-side JavaScript
@@ -27,12 +36,11 @@ The game simulates a crypto betting experience where players can place bets on m
 │   ├── user-guide.md      # User guide
 │   ├── developer-guide.md # Developer documentation
 │   └── deployment.md     # Deployment instructions
-├── crypto.bch.js         # Provably fair algorithm implementation
-├── crypto.bustadice.js   # Alternative crypto algorithm implementation
+├── crypto.bch.js         # Provably fair algorithm implementation (BCH)
+├── crypto.bustadice.js   # Alternative crypto algorithm implementation (Bustadice)
+├── crypto.provider.js    # Crypto provider abstraction
+├── crypto.stake.js       # Alternative crypto algorithm implementation (Stake)
 ├── server.js             # Express server and API endpoints
-├── outcome-generator.js  # CLI tool for generating game outcomes
-├── multi-outcome-generator.js # CLI tool for generating multiple game outcomes
-├── main.js               # Alternative game logic implementation
 ├── package.json          # Project dependencies and scripts
 └── README.md             # Project overview
 ```
@@ -155,16 +163,46 @@ The application will be available at `http://localhost:3000`.
 
 ## CLI Tools
 
-The project includes command-line tools for generating game outcomes:
+The project includes command-line tools for generating game outcomes and utility functions, now organized in the `cli-scripts` directory:
 
 1. `outcome-generator.js`: Generates outcomes for a specified number of rounds
    ```bash
-   node outcome-generator.js <clientSeed> <serverSeed> <n> [threshold]
+   node cli-scripts/outcome-generator.js <rounds> [threshold] [clientSeed] [serverSeed]
    ```
+   
+   This script creates CSV files in the `csv-output/` directory with the following structure:
+   - `outcomes-<timestamp>.csv`: Contains all round multipliers with columns `Round,Multiplier`
+   - `highest-outcomes.csv`: Contains the highest multiplier achieved per session with columns `Round,Multiplier,TotalRounds`
+   - `runtime-<timestamp>.csv`: Contains run-time length analysis with columns `Run,Length,BelowThreshold`
 
 2. `multi-outcome-generator.js`: Runs multiple iterations of outcome generation
    ```bash
-   node multi-outcome-generator.js <iterations> <rounds> [threshold]
+   node cli-scripts/multi-outcome-generator.js <iterations> <rounds> [threshold]
+   ```
+
+3. `profit-calculation.js`: Calculates profit for betting systems based on geometric progression
+   ```bash
+   node cli-scripts/profit-calculation.js <w> <m> <x> <a>
+   ```
+
+4. `profit-simulation.js`: Simulates betting systems with provably fair mechanics
+   ```bash
+   node cli-scripts/profit-simulation.js <m> <x> <a>
+   ```
+
+5. `cost-calculation.js`: Calculates total cost of bets based on initial bet, multiplier, and number of bets
+   ```bash
+   node cli-scripts/cost-calculation.js <initialBet> <betMultiplier> <numberOfBets>
+   ```
+
+6. `randomStringGenerator.js`: Generates random strings with configurable options
+   ```bash
+   node cli-scripts/randomStringGenerator.js
+   ```
+
+7. `random-string-samples.js`: Demonstrates various configurations of the random string generator with clipboard support
+   ```bash
+   node cli-scripts/random-string-samples.js
    ```
 
 ## Development Conventions

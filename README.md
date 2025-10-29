@@ -168,10 +168,63 @@ Verify a game result for fairness.
 }
 ```
 
+## CLI Tools
+
+The project includes command-line tools for generating game outcomes and utility functions, now organized in the `cli-scripts` directory:
+
+1. `outcome-generator.js`: Generates outcomes for a specified number of rounds
+   ```bash
+   node cli-scripts/outcome-generator.js <rounds> [threshold] [clientSeed] [serverSeed]
+   ```
+
+2. `multi-outcome-generator.js`: Runs multiple iterations of outcome generation
+   ```bash
+   node cli-scripts/multi-outcome-generator.js <iterations> <rounds> [threshold]
+   ```
+
+3. `profit-calculation.js`: Calculates profit for betting systems based on geometric progression
+   ```bash
+   node cli-scripts/profit-calculation.js <w> <m> <x> <a>
+   ```
+
+4. `profit-simulation.js`: Simulates betting systems with provably fair mechanics
+   ```bash
+   node cli-scripts/profit-simulation.js <m> <x> <a>
+   ```
+
+5. `cost-calculation.js`: Calculates total cost of bets based on initial bet, multiplier, and number of bets
+   ```bash
+   node cli-scripts/cost-calculation.js <initialBet> <betMultiplier> <numberOfBets>
+   ```
+
+6. `randomStringGenerator.js`: Generates random strings with configurable options
+   ```bash
+   node cli-scripts/randomStringGenerator.js
+   ```
+
+7. `random-string-samples.js`: Demonstrates various configurations of the random string generator with clipboard support
+   ```bash
+   node cli-scripts/random-string-samples.js
+   ```
+
+The outcome-generator creates CSV files in the `csv-output/` directory with the following structure:
+- `outcomes-<timestamp>.csv`: Contains all round multipliers with columns `Round,Multiplier`
+- `highest-outcomes.csv`: Contains the highest multiplier achieved per session with columns `Round,Multiplier,TotalRounds`
+- `runtime-<timestamp>.csv`: Contains run-time length analysis with columns `Run,Length,BelowThreshold`
+
 ## Project Structure
 
 ```
 limbo-game/
+├── cli-scripts/            # CLI tools and utility scripts
+│   ├── cost-calculation.js # Cost calculation functions
+│   ├── multi-outcome-generator.js # Multiple outcome generator
+│   ├── outcome-generator.js # Outcome generator
+│   ├── profit-calculation.js # Profit calculation functions
+│   ├── profit-simulation.js # Profit simulation functions
+│   ├── random-string-samples.js # Random string examples with clipboard support
+│   └── randomStringGenerator.js # Random string generation utility
+├── csv-output/             # Generated CSV files from CLI tools
 ├── public/                 # Static files
 │   ├── index.html         # Main HTML file
 │   ├── script.js          # Client-side JavaScript
@@ -181,7 +234,10 @@ limbo-game/
 │   ├── user-guide.md      # User guide
 │   ├── developer-guide.md # Developer documentation
 │   └── deployment.md     # Deployment instructions
-├── crypto.bch.js         # Provably fair algorithm
+├── crypto.bch.js         # Provably fair algorithm (BCH implementation)
+├── crypto.bustadice.js   # Provably fair algorithm (Bustadice implementation)
+├── crypto.provider.js    # Crypto provider abstraction
+├── crypto.stake.js       # Provably fair algorithm (Stake implementation)
 ├── server.js             # Express server
 ├── package.json          # Dependencies and scripts
 └── README.md             # This file
