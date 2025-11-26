@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizontal Slider Component</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 400px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .slider-container {
+            margin: 30px 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .value-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #3498db;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #3498db;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        button {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Horizontal Slider Component</h1>
+        <div class="slider-container">
+            <div class="slider-label">
+                <span>Min: 1</span>
+                <span>Max: 10,000</span>
+            </div>
+            <input type="range" min="0" max="100" value="50" class="slider" id="mySlider">
+            <div class="value-display">
+                Current Value: <span id="valueDisplay">100</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div>
+                <input type="number" id="minValue" value="0" min="0" max="99">
+                <label for="minValue">Min Position</label>
+            </div>
+            <div>
+                <input type="number" id="maxValue" value="100" min="1" max="100">
+                <label for="maxValue">Max Position</label>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button onclick="resetSlider()">Reset to 50</button>
+            <button onclick="randomValue()">Random Value</button>
+        </div>
+    </div>
+
+    <script>
+        const slider = document.getElementById('mySlider');
+        const valueDisplay = document.getElementById('valueDisplay');
+        const minValueInput = document.getElementById('minValue');
+        const maxValueInput = document.getElementById('maxValue');
+        
+        // Initialize the display with the slider's converted exponential value
+        valueDisplay.textContent = convertSliderValue(slider.value);
+        
+        // Convert slider position to exponential value
+        function convertSliderValue(sliderVal) {
+            // Slider value ranges from 0 to 100
+            // We want to map this to an exponential scale from 1 to 10000
+            // With 50 (center) mapping to 100
+            
+            const sliderNum = parseInt(sliderVal);
+            
+            if (sliderNum <= 50) {
+                // Map 0-50 to 1-100 with an exponential curve that passes through (50, 100)
+                const exponent = 2 * (sliderNum / 50);  // When sliderNum=50, exponent=2, so 10^2=100
+                return Math.max(1, Math.round(Math.pow(10, exponent)));
+            } else {
+                // Map 50-100 to 100-10000 with an exponential curve
+                // The formula ensures smooth continuation from the first half
+                // At sliderNum=100, we want value=10000, so 100*(10^x) where x is calculated
+                const exponent = 2 * ((sliderNum - 50) / 50);  // When sliderNum=100, exponent=2, so 100*10^2=10000
+                return Math.min(10000, Math.round(100 * Math.pow(10, exponent)));
+            }
+        }
+        
+        // Convert actual value back to slider position (for initialization)
+        function convertValueToSlider(value) {
+            const val = parseInt(value);
+            
+            // For values from 1 to 100
+            if (val <= 100 && val >= 1) {
+                return Math.max(0, Math.min(50, Math.round(50 * Math.log10(val) / 2)));
+            }
+            // For values from 100 to 10000
+            else if (val > 100) {
+                return Math.min(100, Math.max(50, Math.round(50 + 50 * Math.log10(val / 100) / 2)));
+            } else {
+                return 50; // default
+            }
+        }
+        
+        // Update the value display when the slider changes
+        slider.oninput = function() {
+            const actualValue = convertSliderValue(this.value);
+            valueDisplay.textContent = actualValue;
+        }
+        
+        // Reset slider to 50 (corresponds to value 100)
+        function resetSlider() {
+            slider.value = 50;
+            valueDisplay.textContent = convertSliderValue(slider.value);
+        }
+        
+        // Set slider to a random value
+        function randomValue() {
+            // Generate a random value between 1 and 10000 on the exponential scale
+            const randomValue = Math.floor(Math.random() * 10000) + 1;
+            
+            // Find the appropriate slider position for this value
+            slider.value = convertValueToSlider(randomValue);
+            valueDisplay.textContent = randomValue;
+        }
+        
+        // Update slider min when min input changes
+        minValueInput.oninput = function() {
+            const min = parseInt(this.value);
+            const max = parseInt(maxValueInput.value);
+            
+            if (min >= max) {
+                this.value = max - 1;
+            }
+            
+            // Adjust slider value if it's below the new minimum
+            if (parseInt(slider.value) < min) {
+                slider.value = min;
+                valueDisplay.textContent = convertSliderValue(slider.value);
+            }
+        }
+        
+        // Update slider max when max input changes
+        maxValueInput.oninput = function() {
+            const min = parseInt(minValueInput.value);
+            const max = parseInt(this.value);
+            
+            if (max <= min) {
+                this.value = min + 1;
+            }
+            
+            // Adjust slider value if it's above the new maximum
+            if (parseInt(slider.value) > max) {
+                slider.value = max;
+                valueDisplay.textContent = convertSliderValue(slider.value);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# Limbo CLI - A bash script to facilitate easier game play
+# Usage: ./limbo [command] [arguments]
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Function to initialize a new game
+initialize_game() {
+    local starting_balance=${1:-1000}  # Default to 1000 if no argument provided
+    
+    echo "Initializing game with balance: $starting_balance"
+    node "$SCRIPT_DIR/init-game.js" "$starting_balance"
+}
+
+# Function to continue a game simulation
+play_game() {
+    if [ $# -ne 4 ]; then
+        echo "Error: play command requires 4 arguments"
+        echo "Usage: play <targetMultiplier> <initialBet> <betMultiplier> <numberOfBets>"
+        exit 1
+    fi
+    
+    local target_multiplier=$1
+    local initial_bet=$2
+    local bet_multiplier=$3
+    local number_of_bets=$4
+    
+    echo "Playing game with parameters: target_multiplier=$target_multiplier, initial_bet=$initial_bet, bet_multiplier=$bet_multiplier, number_of_bets=$number_of_bets"
+    node "$SCRIPT_DIR/continue-game.js" "$target_multiplier" "$initial_bet" "$bet_multiplier" "$number_of_bets"
+}
+
+# Function to display help
+show_help() {
+    echo "Limbo CLI - Provably Fair Crypto Game"
+    echo ""
+    echo "Commands:"
+    echo "  init [balance]    Initialize a new game session with optional starting balance (default: 1000)"
+    echo "  play <targetMultiplier> <initialBet> <betMultiplier> <numberOfBets>    Run a simulation"
+    echo "  help              Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  ./limbo init 2000                    # Initialize with 2000 balance"
+    echo "  ./limbo play 2.0 10 2 5             # Play with target 2x, initial bet 10, multiplier 2, for 5 bets"
+}
+
+# Check if at least one argument is provided
+if [ $# -eq 0 ]; then
+    show_help
+    exit 1
+fi
+
+# Get the command
+command=$1
+shift  # Remove the first argument (command)
+
+# Execute the appropriate function based on the command
+case $command in
+    "init")
+        initialize_game "$@"
+        ;;
+    "play")
+        play_game "$@"
+        ;;
+    "help")
+        show_help
+        ;;
+    *)
+        echo "Unknown command: $command"
+        echo "Use 'help' for available commands"
+        exit 1
+        ;;
+esac
