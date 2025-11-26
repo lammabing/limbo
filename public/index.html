@@ -75,6 +75,18 @@
                                         <button class="quick-multiplier" data-multiplier="5.0">5.0x</button>
                                         <button class="quick-multiplier" data-multiplier="10.0">10.0x</button>
                                     </div>
+                                    
+                                    <!-- Slider for target multiplier -->
+                                    <div class="slider-container">
+                                        <div class="slider-label">
+                                            <span>1.01x</span>
+                                            <span>10,000x</span>
+                                        </div>
+                                        <input type="range" min="0" max="100" value="50" class="slider" id="targetMultiplierSlider">
+                                        <div class="value-display-large">
+                                            <span id="targetMultiplierValueDisplay">100.00</span>x
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -169,6 +181,18 @@
                                     <div class="control-group checkbox-group">
                                         <input type="checkbox" id="autoSpeedMode">
                                         <label for="autoSpeedMode">Speed Mode (Fast Gameplay)</label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Slider for auto target multiplier -->
+                                <div class="slider-container">
+                                    <div class="slider-label">
+                                        <span>1.01x</span>
+                                        <span>10,000x</span>
+                                    </div>
+                                    <input type="range" min="0" max="100" value="50" class="slider" id="autoTargetMultiplierSlider">
+                                    <div class="value-display-large">
+                                        <span id="autoTargetMultiplierValueDisplay">100.00</span>x
                                     </div>
                                 </div>
                             </div>

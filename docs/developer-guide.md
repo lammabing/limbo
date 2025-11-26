@@ -284,7 +284,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 The server implements several RESTful endpoints:
 
 - `POST /play`: Main game endpoint
-- `POST /generateSeeds`: Generate new seeds
+- `POST /generateSeeds`: Generate new seeds using the shared random string generator from cli-scripts
 - `POST /verify`: Verify game results
 
 ### Error Handling
@@ -292,19 +292,38 @@ The server implements several RESTful endpoints:
 The server includes comprehensive error handling:
 
 ```javascript
+// Example for /play endpoint
 app.post('/play', (req, res) => {
     try {
         // Validate input
         if (!clientSeed || !serverSeed || nonce === undefined || !betAmount || !targetMultiplier) {
             return res.status(400).json({ error: 'Missing required parameters' });
         }
-        
+
         // Process game logic
         const multiplier = getMultiplier(parseInt(nonce), clientSeed, serverSeed);
         // ... rest of the logic
-        
+
     } catch (error) {
         console.error('Error processing game round:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Example for /generateSeeds endpoint
+app.post('/generateSeeds', (req, res) => {
+    try {
+        // Generate new client and server seeds using the shared random string generator
+        const newClientSeed = generateRandomString({ length: 32, includeUppercase: true, includeLowercase: true, includeNumbers: true });
+        const newServerSeed = generateRandomString({ length: 32, includeUppercase: true, includeLowercase: true, includeNumbers: true });
+
+        res.json({
+            success: true,
+            clientSeed: newClientSeed,
+            serverSeed: newServerSeed
+        });
+    } catch (error) {
+        console.error('Error generating seeds:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });

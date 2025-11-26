@@ -3,6 +3,7 @@ const path = require('path');
 const cryptoProvider = require('./crypto.provider');
 const { getMultiplier } = cryptoProvider;
 const bodyParser = require('body-parser');
+const { generateRandomString } = require('./cli-scripts/randomStringGenerator.js');
 
 const app = express();
 const port = 3150;
@@ -132,8 +133,8 @@ app.post('/verify', (req, res) => {
 app.post('/generateSeeds', (req, res) => {
     try {
         // Generate new client and server seeds
-        const newClientSeed = generateRandomString(32);
-        const newServerSeed = generateRandomString(32);
+        const newClientSeed = generateRandomString({ length: 32, includeUppercase: true, includeLowercase: true, includeNumbers: true });
+        const newServerSeed = generateRandomString({ length: 32, includeUppercase: true, includeLowercase: true, includeNumbers: true });
         
         res.json({
             success: true,
@@ -147,15 +148,6 @@ app.post('/generateSeeds', (req, res) => {
     }
 });
 
-// Helper function to generate a random string
-function generateRandomString(length) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-}
 
 // Start the server
 app.listen(port, () => {

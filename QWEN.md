@@ -156,6 +156,11 @@ The application will be available at `http://localhost:3000`.
 {
   "scripts": {
     "start": "node server.js",
+    "start:bustadice": "CRYPTO_PROVIDER=bustadice node server.js",
+    "start:stake": "CRYPTO_PROVIDER=stake node server.js",
+    "generate:bch": "node cli-scripts/outcome-generator.js",
+    "generate:bustadice": "CRYPTO_PROVIDER=bustadice node cli-scripts/outcome-generator.js",
+    "generate:stake": "CRYPTO_PROVIDER=stake node cli-scripts/outcome-generator.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
@@ -169,7 +174,7 @@ The project includes command-line tools for generating game outcomes and utility
    ```bash
    node cli-scripts/outcome-generator.js <rounds> [threshold] [clientSeed] [serverSeed]
    ```
-   
+
    This script creates CSV files in the `csv-output/` directory with the following structure:
    - `outcomes-<timestamp>.csv`: Contains all round multipliers with columns `Round,Multiplier`
    - `highest-outcomes.csv`: Contains the highest multiplier achieved per session with columns `Round,Multiplier,TotalRounds`
@@ -185,7 +190,7 @@ The project includes command-line tools for generating game outcomes and utility
    node cli-scripts/profit-calculation.js <w> <m> <x> <a>
    ```
 
-4. `profit-simulation.js`: Simulates betting systems with provably fair mechanics
+4. `profit-simulation.js`: Simulates betting systems with provably fair mechanics using the unified crypto provider module
    ```bash
    node cli-scripts/profit-simulation.js <m> <x> <a>
    ```
@@ -203,6 +208,11 @@ The project includes command-line tools for generating game outcomes and utility
 7. `random-string-samples.js`: Demonstrates various configurations of the random string generator with clipboard support
    ```bash
    node cli-scripts/random-string-samples.js
+   ```
+
+8. `compare-providers.js`: Compares outcomes from different crypto providers using the same seeds
+   ```bash
+   node cli-scripts/compare-providers.js <rounds> [clientSeed] [serverSeed]
    ```
 
 ## Development Conventions

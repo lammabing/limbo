@@ -1,0 +1,172 @@
+
+=== Run 1 : node profit-simulation.js 22000 1.001 1 ===
+Basic random string: 7lnkx4sjvzzzsxpkmlndcnjtq06auwvj
+Lowercase and numbers: b3j0soif8vr5
+Custom with exclusions: $j75!nk(
+Ensure one of each: s1gtduavww
+{
+  "numberOfBets": 10000,
+  "initialBet": 1,
+  "totalBets": 21915681.34,
+  "winBetAmount": 21894.79,
+  "payout": 481685304.16,
+  "profit": 459769622.82,
+  "clientSeed": "CMhWRR1c76MbHlwZG81XckhWETuaM9qy",
+  "serverSeed": "JnVuRBtLwFdt4usECDBGSuac1dl6sVr9",
+  "multiplier": 1.06
+}
+
+=== Run 2 : node profit-simulation.js 22000 1.001 1 ===
+Basic random string: pgbth3p6lbjh9zyseaywehyw81bbxdno
+Lowercase and numbers: dgmx10caa2m9
+Custom with exclusions: ;rvt£[5j
+Ensure one of each: svp2ew0r0g
+{
+  "numberOfBets": 7503,
+  "initialBet": 1,
+  "totalBets": 1805688.7,
+  "winBetAmount": 1804.88,
+  "payout": 39707443.87,
+  "profit": 37901755.18,
+  "clientSeed": "ZMW5hgdm7iOP1WQubkTlLbJeeomgeRIB",
+  "serverSeed": "pgQDWJGNgwWNLQHppkfDvIKDXTzlGWJ2",
+  "multiplier": 109010.01
+}
+
+=== Run 3 : node profit-simulation.js 22000 1.001 1 ===
+Basic random string: ykqjout6laey8n4vx6v6jl6ziglg7a5u
+Lowercase and numbers: 5ed0dj97myh8
+Custom with exclusions: 69-ce4l$
+Ensure one of each: 2uey30cvel
+{
+  "numberOfBets": 10000,
+  "initialBet": 1,
+  "totalBets": 21915681.34,
+  "winBetAmount": 21894.79,
+  "payout": 481685304.16,
+  "profit": 459769622.82,
+  "clientSeed": "rPFI8Hrm9fjHYiT2XdIaehF9obY6qdZR",
+  "serverSeed": "oHajhH0itpQH4CW6OWIsbIa8fStSifV3",
+  "multiplier": 4.34
+}
+
+=== Run 4 : node profit-simulation.js 22000 1.001 1 ===
+Basic random string: gr887bv9ct4f37267exwp00wuqy4g2if
+Lowercase and numbers: x8g4ct77q1bm
+Custom with exclusions: 2[:s++]]
+Ensure one of each: 8hpv6ybrjm
+{
+  "numberOfBets": 10000,
+  "initialBet": 1,
+  "totalBets": 21915681.34,
+  "winBetAmount": 21894.79,
+  "payout": 481685304.16,
+  "profit": 459769622.82,
+  "clientSeed": "fZpzhbWy4TRfGnJpP8M1LgMuHBRDceUt",
+  "serverSeed": "EOCXBHgn7zfZc0rMIVYwNumHwKgh2yvw",
+  "multiplier": 43.62
+}
+
+=== Run 5 : node profit-simulation.js 22000 1.001 1 ===
+Basic random string: bm5r9a0pq36t7mysuuoo87j8okchi3q3
+Lowercase and numbers: my1xu9ztkbmj
+Custom with exclusions: €|y!(6pr
+Ensure one of each: pym4ux8wbd
+{
+  "numberOfBets": 5113,
+  "initialBet": 1,
+  "totalBets": 164744.13,
+  "winBetAmount": 165.58,
+  "payout": 3642728.09,
+  "profit": 3477983.97,
+  "clientSeed": "3gM3nAQuz6PqSjjd909fIhLiWLADJETN",
+  "serverSeed": "o4NGq62b1iGJp1d72XhbriLParxONZxo",
+  "multiplier": 58091.28
+}
+
+=== Run 6 : node profit-simulation.js 22000 1.001 1 ===
+Basic random string: piifmdgv3q1ri5tmz9dv8tw8ay6qbprj
+Lowercase and numbers: x1f6twl0u5z8
+Custom with exclusions: 7=;17rew
+Ensure one of each: i2lp2i29wz
+{
+  "numberOfBets": 354,
+  "initialBet": 1,
+  "totalBets": 424.5,
+  "winBetAmount": 1.42,
+  "payout": 31307.76,
+  "profit": 30883.26,
+  "clientSeed": "EwV9qCCbvqh9EO8OO0FZITkFzARt7kuv",
+  "serverSeed": "XLuw3CdZgqBHJuxBvIyrKIEJU0874Qad",
+  "multiplier": 65159.57
+}
+
+=== Run 7 : node profit-simulation.js 22000 1.001 1 ===
+Basic random string: l47oigb4fubnot5z1f0m745zjxy31x7c
+Lowercase and numbers: og0w0m51voxg
+Custom with exclusions: 7mpu*r&;
+Ensure one of each: erxre18fzw
+{
+  "numberOfBets": 10000,
+  "initialBet": 1,
+  "totalBets": 21915681.34,
+  "winBetAmount": 21894.79,
+  "payout": 481685304.16,
+  "profit": 459769622.82,
+  "clientSeed": "DIjqYvIDR0uBKQbme7Io32X3BxlNSB5s",
+  "serverSeed": "6gtK5zaCjLs1VmnFwHXIwyaIWFVeyiRy",
+  "multiplier": 2.95
+}
+
+=== Run 8 : node profit-simulation.js 22000 1.001 1 ===
+Basic random string: i1b7wgbd7pvioskkc2eweouypqzm5hc1
+Lowercase and numbers: o56nvvjiy9v1
+Custom with exclusions: !26(ej£?
+Ensure one of each: o0go0yxo6m
+{
+  "numberOfBets": 10000,
+  "initialBet": 1,
+  "totalBets": 21915681.34,
+  "winBetAmount": 21894.79,
+  "payout": 481685304.16,
+  "profit": 459769622.82,
+  "clientSeed": "7vxtbPi7y6KfspuycyCorvkDp4DwAQxY",
+  "serverSeed": "VrdAvv7RcUpg6Wqm5yDTXnvc22OeVBRt",
+  "multiplier": 1.01
+}
+
+=== Run 9 : node profit-simulation.js 22000 1.001 1 ===
+Basic random string: z64lko1iy9vjmfurclamoeoc9f1k7v0x
+Lowercase and numbers: c457no98uots
+Custom with exclusions: =i}i1ylu
+Ensure one of each: 4sy0l6txag
+{
+  "numberOfBets": 10000,
+  "initialBet": 1,
+  "totalBets": 21915681.34,
+  "winBetAmount": 21894.79,
+  "payout": 481685304.16,
+  "profit": 459769622.82,
+  "clientSeed": "JipBs06MqBg8di2FjuNNaLUqtEzYjEzw",
+  "serverSeed": "M7uSFXW5oEYfIG5hXVR5QifqxFWo2bW1",
+  "multiplier": 1.46
+}
+
+=== Run 10 : node profit-simulation.js 22000 1.001 1 ===
+Basic random string: 9bvnybxbty8iie545qsmwn86rftitl2v
+Lowercase and numbers: fz8ckc0t4lrk
+Custom with exclusions: btl@6c7[
+Ensure one of each: rwgovi8z53
+{
+  "numberOfBets": 10000,
+  "initialBet": 1,
+  "totalBets": 21915681.34,
+  "winBetAmount": 21894.79,
+  "payout": 481685304.16,
+  "profit": 459769622.82,
+  "clientSeed": "YTREMXKGACuFcYfD7ovNhsuKwkQctcuS",
+  "serverSeed": "vMX6znuz8Mt0XaFbaSaRkVdp1dJAAyoR",
+  "multiplier": 1.5
+}
+
+All repetitions finished.

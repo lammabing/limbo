@@ -29,9 +29,13 @@ document.addEventListener('DOMContentLoaded', function() {
         gameStatus: document.getElementById('gameStatus'),
         betAmount: document.getElementById('betAmount'),
         targetMultiplier: document.getElementById('targetMultiplier'),
+        targetMultiplierSlider: document.getElementById('targetMultiplierSlider'),
+        targetMultiplierValueDisplay: document.getElementById('targetMultiplierValueDisplay'),
         placeBet: document.getElementById('placeBet'),
         autoBetAmount: document.getElementById('autoBetAmount'),
         autoTargetMultiplier: document.getElementById('autoTargetMultiplier'),
+        autoTargetMultiplierSlider: document.getElementById('autoTargetMultiplierSlider'),
+        autoTargetMultiplierValueDisplay: document.getElementById('autoTargetMultiplierValueDisplay'),
         numberOfRounds: document.getElementById('numberOfRounds'),
         stopProfit: document.getElementById('stopProfit'),
         stopLoss: document.getElementById('stopLoss'),
@@ -58,12 +62,62 @@ document.addEventListener('DOMContentLoaded', function() {
         roundsTallyTableBody: document.getElementById('roundsTallyTableBody')
     };
 
+    // Convert slider position to exponential value (1.01 to 10000)
+    function convertSliderValueToMultiplier(sliderVal) {
+        // Slider value ranges from 0 to 100
+        // We want to map this to an exponential scale from 1.01 to 10000
+        // With 50 (center) mapping to 100
+        
+        const sliderNum = parseInt(sliderVal);
+        
+        if (sliderNum <= 50) {
+            // Map 0-50 to 1.01-100 with an exponential curve that passes through (50, 100)
+            const exponent = 2 * (sliderNum / 50);  // When sliderNum=50, exponent=2, so 10^2=100
+            return Math.max(1.01, Math.min(100, Math.round(Math.pow(10, exponent) * 100) / 100));
+        } else {
+            // Map 50-100 to 100-10000 with an exponential curve
+            // The formula ensures smooth continuation from the first half
+            // At sliderNum=100, we want value=10000, so 100*(10^x) where x is calculated
+            const exponent = 2 * ((sliderNum - 50) / 50);  // When sliderNum=100, exponent=2, so 100*10^2=10000
+            return Math.min(10000, Math.round(100 * Math.pow(10, exponent)));
+        }
+    }
+    
+    // Convert actual multiplier back to slider position (for initialization)
+    function convertMultiplierToSliderValue(multiplier) {
+        const val = parseFloat(multiplier);
+        
+        // For values from 1.01 to 100
+        if (val <= 100 && val >= 1.01) {
+            return Math.max(0, Math.min(50, Math.round(50 * Math.log10(val) / 2)));
+        }
+        // For values from 100 to 10000
+        else if (val > 100) {
+            return Math.min(100, Math.max(50, Math.round(50 + 50 * Math.log10(val / 100) / 2)));
+        } else {
+            return 50; // default
+        }
+    }
+    
     // Initialize the game
     function initGame() {
         updateBalanceDisplay();
         setupEventListeners();
         generateSeeds();
         loadClassBoundaries();
+        
+        // Initialize sliders with default values after everything is loaded
+        if (elements.targetMultiplierSlider && elements.targetMultiplierValueDisplay) {
+            const initialSliderValue = convertMultiplierToSliderValue(elements.targetMultiplier.value);
+            elements.targetMultiplierSlider.value = initialSliderValue;
+            elements.targetMultiplierValueDisplay.textContent = parseFloat(elements.targetMultiplier.value).toFixed(2);
+        }
+        
+        if (elements.autoTargetMultiplierSlider && elements.autoTargetMultiplierValueDisplay) {
+            const initialSliderValue = convertMultiplierToSliderValue(elements.autoTargetMultiplier.value);
+            elements.autoTargetMultiplierSlider.value = initialSliderValue;
+            elements.autoTargetMultiplierValueDisplay.textContent = parseFloat(elements.autoTargetMultiplier.value).toFixed(2);
+        }
     }
 
     // Update balance display
@@ -112,7 +166,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Quick multiplier buttons
         document.querySelectorAll('.quick-multiplier').forEach(button => {
             button.addEventListener('click', () => {
-                elements.targetMultiplier.value = button.dataset.multiplier;
+                const multiplierValue = parseFloat(button.dataset.multiplier);
+                elements.targetMultiplier.value = multiplierValue.toFixed(2);
+                
+                // Update the slider if it exists
+                if (elements.targetMultiplierSlider) {
+                    elements.targetMultiplierSlider.value = convertMultiplierToSliderValue(multiplierValue);
+                }
+                
+                // Update the value display if it exists
+                if (elements.targetMultiplierValueDisplay) {
+                    elements.targetMultiplierValueDisplay.textContent = multiplierValue.toFixed(2);
+                }
             });
         });
         
@@ -162,6 +227,50 @@ document.addEventListener('DOMContentLoaded', function() {
             // Sync manual speed mode with auto speed mode
             elements.speedMode.checked = this.checked;
         });
+        
+        // Manual target multiplier slider
+        if (elements.targetMultiplierSlider && elements.targetMultiplierValueDisplay) {
+            // Initialize the slider with the current target multiplier value
+            const initialSliderValue = convertMultiplierToSliderValue(elements.targetMultiplier.value);
+            elements.targetMultiplierSlider.value = initialSliderValue;
+            elements.targetMultiplierValueDisplay.textContent = parseFloat(elements.targetMultiplier.value).toFixed(2);
+            
+            // Update target multiplier input when slider changes
+            elements.targetMultiplierSlider.oninput = function() {
+                const multiplierValue = convertSliderValueToMultiplier(this.value);
+                elements.targetMultiplier.value = multiplierValue.toFixed(2);
+                elements.targetMultiplierValueDisplay.textContent = multiplierValue.toFixed(2);
+            };
+            
+            // Update slider when target multiplier input changes
+            elements.targetMultiplier.addEventListener('input', function() {
+                const sliderValue = convertMultiplierToSliderValue(this.value);
+                elements.targetMultiplierSlider.value = sliderValue;
+                elements.targetMultiplierValueDisplay.textContent = parseFloat(this.value).toFixed(2);
+            });
+        }
+        
+        // Auto target multiplier slider
+        if (elements.autoTargetMultiplierSlider && elements.autoTargetMultiplierValueDisplay) {
+            // Initialize the slider with the current auto target multiplier value
+            const initialSliderValue = convertMultiplierToSliderValue(elements.autoTargetMultiplier.value);
+            elements.autoTargetMultiplierSlider.value = initialSliderValue;
+            elements.autoTargetMultiplierValueDisplay.textContent = parseFloat(elements.autoTargetMultiplier.value).toFixed(2);
+            
+            // Update auto target multiplier input when slider changes
+            elements.autoTargetMultiplierSlider.oninput = function() {
+                const multiplierValue = convertSliderValueToMultiplier(this.value);
+                elements.autoTargetMultiplier.value = multiplierValue.toFixed(2);
+                elements.autoTargetMultiplierValueDisplay.textContent = multiplierValue.toFixed(2);
+            };
+            
+            // Update slider when auto target multiplier input changes
+            elements.autoTargetMultiplier.addEventListener('input', function() {
+                const sliderValue = convertMultiplierToSliderValue(this.value);
+                elements.autoTargetMultiplierSlider.value = sliderValue;
+                elements.autoTargetMultiplierValueDisplay.textContent = parseFloat(this.value).toFixed(2);
+            });
+        }
         
         // Stop profit and stop loss input fields
         elements.stopProfit.addEventListener('input', function() {
@@ -293,6 +402,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentValue = parseFloat(elements.targetMultiplier.value) || 1.01;
         const newValue = Math.max(1.01, currentValue + amount);
         elements.targetMultiplier.value = newValue.toFixed(2);
+        
+        // Update the slider if it exists
+        if (elements.targetMultiplierSlider) {
+            elements.targetMultiplierSlider.value = convertMultiplierToSliderValue(newValue);
+        }
+        
+        // Update the value display if it exists
+        if (elements.targetMultiplierValueDisplay) {
+            elements.targetMultiplierValueDisplay.textContent = newValue.toFixed(2);
+        }
     }
 
     // Adjust auto bet amount
@@ -307,6 +426,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentValue = parseFloat(elements.autoTargetMultiplier.value) || 1.01;
         const newValue = Math.max(1.01, currentValue + amount);
         elements.autoTargetMultiplier.value = newValue.toFixed(2);
+        
+        // Update the slider if it exists
+        if (elements.autoTargetMultiplierSlider) {
+            elements.autoTargetMultiplierSlider.value = convertMultiplierToSliderValue(newValue);
+        }
+        
+        // Update the value display if it exists
+        if (elements.autoTargetMultiplierValueDisplay) {
+            elements.autoTargetMultiplierValueDisplay.textContent = newValue.toFixed(2);
+        }
     }
 
     // Adjust number of rounds

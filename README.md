@@ -172,40 +172,65 @@ Verify a game result for fairness.
 
 The project includes command-line tools for generating game outcomes and utility functions, now organized in the `cli-scripts` directory:
 
-1. `outcome-generator.js`: Generates outcomes for a specified number of rounds
+1. `init-game.js`: Initializes a game session by generating and fixing seeds for a session
+   ```bash
+   node cli-scripts/init-game.js
+   ```
+
+2. `continue-simulate.js`: Continues a game simulation using the fixed seeds, updating the nonce for each game played. The simulation will automatically stop if a win results in an overall positive profit.
+   ```bash
+   node cli-scripts/continue-simulate.js <targetMultiplier> <initialBet> <betMultiplier> <numberOfBets>
+   ```
+
+3. `reset-game.js`: Resets the game session by deleting the game-session.json file
+   ```bash
+   node cli-scripts/reset-game.js
+   ```
+
+4. `view-game-session.js`: Displays the current game session information
+   ```bash
+   node cli-scripts/view-game-session.js
+   ```
+
+5. `outcome-generator.js`: Generates outcomes for a specified number of rounds
    ```bash
    node cli-scripts/outcome-generator.js <rounds> [threshold] [clientSeed] [serverSeed]
    ```
 
-2. `multi-outcome-generator.js`: Runs multiple iterations of outcome generation
+6. `multi-outcome-generator.js`: Runs multiple iterations of outcome generation
    ```bash
    node cli-scripts/multi-outcome-generator.js <iterations> <rounds> [threshold]
    ```
 
-3. `profit-calculation.js`: Calculates profit for betting systems based on geometric progression
+7. `profit-calculation.js`: Calculates profit for betting systems based on geometric progression
    ```bash
    node cli-scripts/profit-calculation.js <w> <m> <x> <a>
    ```
 
-4. `profit-simulation.js`: Simulates betting systems with provably fair mechanics
+8. `profit-simulation.js`: Simulates betting systems with provably fair mechanics using the unified crypto provider module
    ```bash
    node cli-scripts/profit-simulation.js <m> <x> <a>
    ```
 
-5. `cost-calculation.js`: Calculates total cost of bets based on initial bet, multiplier, and number of bets
+9. `cost-calculation.js`: Calculates total cost of bets based on initial bet, multiplier, and number of bets
    ```bash
    node cli-scripts/cost-calculation.js <initialBet> <betMultiplier> <numberOfBets>
    ```
 
-6. `randomStringGenerator.js`: Generates random strings with configurable options
-   ```bash
-   node cli-scripts/randomStringGenerator.js
-   ```
+10. `randomStringGenerator.js`: Generates random strings with configurable options
+    ```bash
+    node cli-scripts/randomStringGenerator.js
+    ```
 
-7. `random-string-samples.js`: Demonstrates various configurations of the random string generator with clipboard support
-   ```bash
-   node cli-scripts/random-string-samples.js
-   ```
+11. `random-string-samples.js`: Demonstrates various configurations of the random string generator with clipboard support
+    ```bash
+    node cli-scripts/random-string-samples.js
+    ```
+
+12. `compare-providers.js`: Compares outcomes from different crypto providers using the same seeds
+    ```bash
+    node cli-scripts/compare-providers.js <rounds> [clientSeed] [serverSeed]
+    ```
 
 The outcome-generator creates CSV files in the `csv-output/` directory with the following structure:
 - `outcomes-<timestamp>.csv`: Contains all round multipliers with columns `Round,Multiplier`

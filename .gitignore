@@ -6,8 +6,9 @@
 # Node modules
 node_modules/
 
-# Log files
+# Log files and logs directory
 *.log
+logs/
 
 # Environment files
 .env*
@@ -17,3 +18,14 @@ node_modules/
 
 # CSV output directory (for generated outcome files)
 csv-output/
+
+# Test files and temporary files
+*.tmp
+*.temp
+output.txt
+test_*.js
+*.db
+
+# Temporary directories
+tmp/
+temp/
