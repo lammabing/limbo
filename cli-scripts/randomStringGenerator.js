@@ -53,7 +53,7 @@ function generateRandomString({
 
   // Generate random string
   let result = '';
-  
+
   if (ensureAtLeastOne) {
     // Ensure at least one character from each enabled set
     if (includeUppercase) result += uppercase[Math.floor(Math.random() * uppercase.length)];
@@ -79,33 +79,67 @@ function generateRandomString({
   return result;
 }
 
-// Example usage
-try {
-  // Basic random string
-  console.log('Basic random string:', generateRandomString());
+// Example usage with table formatting
+if (require.main === module) {
+    const { createTable, createSectionHeader, createKeyValueTable } = require('./table-utils.js');
 
-  // Custom length, only lowercase and numbers
-  console.log('Lowercase and numbers:', generateRandomString({
-    length: 12,
-    includeUppercase: false,
-    includeSymbols: false
-  }));
+    console.log(createSectionHeader('Random String Generator Examples', { character: '=' }));
 
-  // Include specific characters, exclude others
-  console.log('Custom with exclusions:', generateRandomString({
-    length: 8,
-    customChars: '£€',
-    excludeChars: 'oO0',
-    includeSymbols: true
-  }));
+    const examples = [
+        {
+            name: 'Basic (32 chars)',
+            config: {},
+            description: 'Default: lowercase + numbers'
+        },
+        {
+            name: 'Short ID (12 chars)',
+            config: { length: 12, includeUppercase: false },
+            description: 'Lowercase + numbers only'
+        },
+        {
+            name: 'Custom Symbols',
+            config: { length: 8, customChars: '£€', excludeChars: 'oO0', includeSymbols: true },
+            description: 'With custom chars, exclusions'
+        },
+        {
+            name: 'All Character Types',
+            config: { length: 16, includeUppercase: true, includeLowercase: true, includeNumbers: true, includeSymbols: true, ensureAtLeastOne: true },
+            description: 'Ensures one of each type'
+        },
+        {
+            name: 'Crypto Seed',
+            config: { length: 64, includeUppercase: true, includeLowercase: true, includeNumbers: true },
+            description: '64-char alphanumeric seed'
+        }
+    ];
 
-  // Ensure at least one of each enabled set
-  console.log('Ensure one of each:', generateRandomString({
-    length: 10,
-    ensureAtLeastOne: true
-  }));
-} catch (error) {
-  console.error('Error:', error.message);
+    // Generate and display examples in table format
+    const headers = ['Name', 'Length', 'Generated String', 'Description'];
+    const rows = examples.map(ex => {
+        const str = generateRandomString(ex.config);
+        return [
+            ex.name,
+            ex.config.length || 32,
+            str,
+            ex.description
+        ];
+    });
+
+    console.log(createTable(headers, rows));
+    
+    // Display configuration details
+    console.log(createSectionHeader('Configuration Options'));
+    const configOptions = {
+        'length': 'Length of generated string (default: 32)',
+        'includeUppercase': 'Include A-Z (default: false)',
+        'includeLowercase': 'Include a-z (default: true)',
+        'includeNumbers': 'Include 0-9 (default: true)',
+        'includeSymbols': 'Include special chars (default: false)',
+        'customChars': 'Add custom characters (default: "")',
+        'excludeChars': 'Exclude specific chars (default: "")',
+        'ensureAtLeastOne': 'Ensure one from each set (default: false)'
+    };
+    console.log(createKeyValueTable(configOptions, { keyLabel: 'Option', valueLabel: 'Description' }));
 }
 
 module.exports = { generateRandomString };

@@ -97,6 +97,8 @@ module.exports = { simulateProfit };
 
 // CLI functionality to allow calling from command line
 if (require.main === module) {
+    const { createTable, createSectionHeader, createKeyValueTable } = require('./table-utils.js');
+
     // If called directly from command line
     if (process.argv.length < 5 || process.argv.length > 6) { // node profit-simulation.js + 3-4 arguments
         console.error('Usage: node profit-simulation.js <m> <x> <a> [startingBalance]');
@@ -117,7 +119,42 @@ if (require.main === module) {
             startingBalance !== undefined ? parseFloat(startingBalance) : 1000
         );
 
-        console.log(JSON.stringify(results, null, 2));
+        // Display results in table format
+        console.log(createSectionHeader('Simulation Results', { character: '=' }));
+        
+        // Main results table
+        const headers = ['Rounds', 'Total Bets', 'Win Bet', 'Payout', 'Profit', 'Final Balance', 'Status'];
+        const statusColor = results.gameOver ? '\x1b[31mGame Over\x1b[0m' : '\x1b[32mWon\x1b[0m';
+        const profitDisplay = results.profit >= 0 
+            ? `+${results.profit.toFixed(2)}` 
+            : results.profit.toFixed(2);
+        
+        const rows = [[
+            results.roundsPlayed,
+            results.totalBets.toFixed(2),
+            results.winBetAmount.toFixed(2),
+            results.payout.toFixed(2),
+            profitDisplay,
+            results.finalBalance.toFixed(2),
+            statusColor
+        ]];
+        
+        console.log(createTable(headers, rows, { 
+            columnAlignments: { 0: 'right', 1: 'right', 2: 'right', 3: 'right', 4: 'right', 5: 'right', 6: 'center' }
+        }));
+        
+        // Additional details table
+        console.log(createSectionHeader('Game Details'));
+        const details = {
+            'Target Multiplier': `${m}x`,
+            'Initial Bet': results.initialBet.toFixed(2),
+            'Winning Round': results.numberOfBets,
+            'Actual Multiplier': `${results.multiplier.toFixed(2)}x`,
+            'Client Seed': results.clientSeed,
+            'Server Seed': results.serverSeed
+        };
+        console.log(createKeyValueTable(details));
+        
     } catch (error) {
         console.error('Error simulating profit:', error.message);
         process.exit(1);

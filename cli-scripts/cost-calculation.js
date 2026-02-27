@@ -40,6 +40,7 @@ function calculateTotalBets(initialBet, betMultiplier, numberOfBets) {
     }
     
     return {
+        initialBet,
         totalBets,
         finalBet: currentBet
     };
@@ -47,12 +48,13 @@ function calculateTotalBets(initialBet, betMultiplier, numberOfBets) {
 
 // If this file is run directly, handle command-line arguments
 if (require.main === module) {
-    const args = process.argv.slice(2); // Get command line arguments, excluding node path and script name
+    const { createTable, createSectionHeader, createKeyValueTable } = require('./table-utils.js');
     
+    const args = process.argv.slice(2); // Get command line arguments, excluding node path and script name
+
     if (args.length === 0) {
         // No arguments provided - show usage information
-        console.log('Cost Calculation Module');
-        console.log('=====================');
+        console.log(createSectionHeader('Cost Calculation Module', { character: '=' }));
         console.log('Usage: node cost-calculation.js <initialBet> <betMultiplier> <numberOfBets>');
         console.log('   OR: chmod +x cost-calculation.js && ./cost-calculation.js <initialBet> <betMultiplier> <numberOfBets>');
         console.log('');
@@ -75,16 +77,30 @@ if (require.main === module) {
             const initialBet = parseFloat(args[0]);
             const betMultiplier = parseFloat(args[1]);
             const numberOfBets = parseInt(args[2]);
-            
+
             const result = calculateTotalBets(initialBet, betMultiplier, numberOfBets);
+
+            // Display results in table format
+            console.log(createSectionHeader('Cost Calculation Results', { character: '=' }));
             
-            console.log('Calculation Results:');
-            console.log('===================');
-            console.log(`Initial Bet: ${initialBet}`);
-            console.log(`Bet Multiplier: ${betMultiplier}`);
-            console.log(`Number of Bets: ${numberOfBets}`);
-            console.log(`Total Bets: ${result.totalBets}`);
-            console.log(`Final Bet: ${result.finalBet}`);
+            // Input parameters table
+            const inputParams = {
+                'Initial Bet': result.initialBet !== undefined ? result.initialBet.toFixed(2) : initialBet.toFixed(2),
+                'Bet Multiplier': `${betMultiplier}x`,
+                'Number of Bets': numberOfBets
+            };
+            console.log(createKeyValueTable(inputParams));
+            
+            // Results table
+            const headers = ['Total Bets', 'Final Bet'];
+            const rows = [[
+                result.totalBets.toFixed(2),
+                result.finalBet.toFixed(2)
+            ]];
+            console.log(createTable(headers, rows, { 
+                columnAlignments: { 0: 'right', 1: 'right' }
+            }));
+            
         } catch (error) {
             console.error(`Error: ${error.message}`);
             console.log('');
