@@ -59,6 +59,8 @@ function initGame(startingBalance = 1000, roundDownMonetaryValues = true) {
 
 // CLI functionality to allow calling from command line
 if (require.main === module) {
+    const { createTable, createKeyValueTable, createSectionHeader } = require('../cli-scripts/table-utils.js');
+    
     if (process.argv.length < 2 || process.argv.length > 4) { // node init-game.js + optional args
         console.error('Usage: node init-game.js [startingBalance] [roundDownMonetaryValues]');
         console.error('  startingBalance: Initial balance for the game (default: 1000)');
@@ -90,7 +92,23 @@ if (require.main === module) {
             process.exit(1);
         }
 
-        initGame(startingBalance, roundDownMonetaryValues);
+        const gameState = initGame(startingBalance, roundDownMonetaryValues);
+        
+        // Display game initialization results in table format
+        console.log(createSectionHeader('Game Session Initialized', { character: '=' }));
+        
+        const gameDetails = {
+            'Client Seed': gameState.clientSeed,
+            'Server Seed': gameState.serverSeed,
+            'Initial Nonce': gameState.nonce,
+            'Starting Balance': gameState.balance.toFixed(2),
+            'Round Down Monetary Values': gameState.roundDownMonetaryValues ? 'Yes' : 'No',
+            'Created At': gameState.createdAt,
+            'Save File': gameStateFile
+        };
+        
+        console.log(createKeyValueTable(gameDetails));
+        
     } catch (error) {
         console.error('Error initializing game:', error.message);
         process.exit(1);

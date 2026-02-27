@@ -181,15 +181,39 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
 
     saveGameState(gameState);
 
-    console.log('Simulation completed!');
-    console.log(`Total Rounds: ${numberOfBets}`);
-    console.log(`Wins: ${results.wins}`);
-    console.log(`Losses: ${results.losses}`);
-    console.log(`Starting Balance: ${results.startingBalance}`);
-    console.log(`Final Balance: ${results.finalBalance}`);
-    console.log(`Total Profit: ${results.totalProfit}`);
-    console.log(`Cumulative Profit: ${results.cumulativeProfit}`);
-    console.log(`Final Nonce: ${results.finalNonce}`);
+    // Display results in table format
+    console.log('\nSimulation Results');
+    console.log('==================');
+    
+    const { createTable, createKeyValueTable, createSectionHeader } = require('../cli-scripts/table-utils.js');
+    
+    // Summary table
+    const summaryHeaders = ['Rounds', 'Wins', 'Losses', 'Start Balance', 'Final Balance', 'Profit', 'Cumulative Profit'];
+    const profitDisplay = results.totalProfit >= 0 ? `+${results.totalProfit}` : results.totalProfit;
+    const summaryRows = [[
+        numberOfBets,
+        results.wins,
+        results.losses,
+        results.startingBalance,
+        results.finalBalance,
+        profitDisplay,
+        results.cumulativeProfit
+    ]];
+    
+    console.log(createTable(summaryHeaders, summaryRows, { 
+        columnAlignments: { 0: 'right', 1: 'right', 2: 'right', 3: 'right', 4: 'right', 5: 'right', 6: 'right' }
+    }));
+    
+    // Details table
+    console.log(createSectionHeader('Game Details'));
+    const details = {
+        'Target Multiplier': `${targetMultiplier}x`,
+        'Initial Bet': initialBet,
+        'Bet Multiplier': `${betMultiplier}x`,
+        'Start Nonce': results.startNonce,
+        'Final Nonce': results.finalNonce
+    };
+    console.log(createKeyValueTable(details));
 
     return results;
 }
@@ -209,14 +233,12 @@ if (require.main === module) {
     const [, , targetMultiplier, initialBet, betMultiplier, numberOfBets] = process.argv;
 
     try {
-        const results = continueSimulate(
+        continueSimulate(
             parseFloat(targetMultiplier),
             parseFloat(initialBet),
             parseFloat(betMultiplier),
             parseInt(numberOfBets)
         );
-
-        console.log(JSON.stringify(results, null, 2));
     } catch (error) {
         console.error('Error in simulation:', error.message);
         process.exit(1);
