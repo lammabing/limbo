@@ -21,7 +21,7 @@ cat << 'EOF' >> "$CONFIG_FILE"
 # Runs: node init.js [args...]
 # Works from any directory, always executes init.js in the current folder
 start() {
-    node init.js "$@"
+    node init-game.js "$@"
 }
 # === START COMMAND END ===
 EOF

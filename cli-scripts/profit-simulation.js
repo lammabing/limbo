@@ -63,7 +63,8 @@ function simulateProfit(m, x, a, startingBalance = 1000) {
 
         if (multiplier >= m) {
             // Player wins: add the payout to the balance
-            const payout = betAmount * multiplier;
+            // Use target multiplier (m) rather than actual multiplier for payout calculation
+            const payout = betAmount * m;
             balance += payout;
             break;
         }
@@ -80,7 +81,7 @@ function simulateProfit(m, x, a, startingBalance = 1000) {
         initialBet: a,
         totalBets: Number(totalBets.toFixed(2)),
         winBetAmount: Number(lastBetAmount.toFixed(2)),
-        payout: Number((lastBetAmount * multiplier).toFixed(2)),
+        payout: Number((lastBetAmount * m).toFixed(2)),
         profit: Number(profit.toFixed(2)),
         finalBalance: Number(balance.toFixed(2)),
         roundsPlayed,

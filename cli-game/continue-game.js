@@ -28,6 +28,25 @@ function loadGameState() {
     }
 }
 
+function roundMonetaryValue(value, gameState) {
+    if (gameState.roundDownMonetaryValues) {
+        return Math.floor(value);
+    } else {
+        return value;
+    }
+}
+
+function roundBetAmount(value, gameState) {
+    // When rounding monetary values, ensure bet amounts have a minimum value of 1
+    // to prevent very small fractional bets from being rounded down to 0
+    if (gameState.roundDownMonetaryValues) {
+        const roundedValue = Math.floor(value);
+        return Math.max(1, roundedValue); // Ensure minimum bet amount is 1
+    } else {
+        return value;
+    }
+}
+
 function saveGameState(gameState) {
     fs.writeFileSync(gameStateFile, JSON.stringify(gameState, null, 2));
 }
@@ -68,7 +87,7 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
 
         // Check if we have enough balance to place the bet
         if (gameState.balance < originalBetAmount) {
-            console.log(`Cannot place bet of ${originalBetAmount.toFixed(2)} - insufficient balance (${gameState.balance.toFixed(2)}). Simulation ended.`);
+            console.log(`Cannot place bet of ${originalBetAmount} - insufficient balance (${gameState.balance}). Simulation ended.`);
             break;
         }
 
@@ -81,14 +100,17 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
         // Calculate payout if won
         let payout = 0;
         if (won) {
-            payout = originalBetAmount * multiplier;  // Use actual multiplier instead of target for real payout
+            payout = originalBetAmount * targetMultiplier;  // Use target multiplier for payout calculation
+            payout = roundMonetaryValue(payout, gameState);
             totalWon += payout;
             // Reset bet to initial amount after a win
-            currentBet = initialBet;
+            currentBet = roundMonetaryValue(initialBet, gameState);
             results.wins++;
         } else {
             // Increase bet for next round after a loss
-            currentBet *= betMultiplier;
+            // Apply multiplier first, then round to avoid situations where small fractional bets
+            // get rounded to 1 and stay at 1 when multiplier is less than 2
+            currentBet = roundMonetaryValue(currentBet * betMultiplier, gameState);
             results.losses++;
         }
 
@@ -96,33 +118,33 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
         const roundProfit = won ? payout - originalBetAmount : -originalBetAmount;
 
         // Update the balance
-        gameState.balance += roundProfit;
+        gameState.balance = roundMonetaryValue(gameState.balance + roundProfit, gameState);
 
         // Add to total wagered
-        totalWagered += originalBetAmount;
+        totalWagered = roundMonetaryValue(totalWagered + originalBetAmount, gameState);
 
-        // Record this round's outcome (truncating all decimal values to 2 decimal places)
+        // Record this round's outcome
         results.outcomes.push({
             round: i + 1,
             nonce: gameState.nonce,
-            betAmount: parseFloat(originalBetAmount.toFixed(2)),
-            multiplier: parseFloat(multiplier.toFixed(2)),
-            targetMultiplier: parseFloat(targetMultiplier.toFixed(2)),
+            betAmount: roundBetAmount(originalBetAmount, gameState),
+            multiplier: parseFloat(multiplier.toFixed(2)),  // multiplier is not a monetary value, so keep as is
+            targetMultiplier: parseFloat(targetMultiplier.toFixed(2)),  // targetMultiplier is not a monetary value, so keep as is
             won: won,
-            payout: parseFloat(payout.toFixed(2)),
-            profit: parseFloat(roundProfit.toFixed(2)),
-            balance: parseFloat(gameState.balance.toFixed(2))  // Add balance after this round
+            payout: roundMonetaryValue(payout, gameState),
+            profit: roundMonetaryValue(roundProfit, gameState),
+            balance: roundMonetaryValue(gameState.balance, gameState)  // Add balance after this round
         });
 
         // Update the nonce for the next round
         gameState.nonce++;
 
         // Update total profit
-        results.totalProfit += roundProfit;
+        results.totalProfit = roundMonetaryValue(results.totalProfit + roundProfit, gameState);
 
         // If there was a win and total profit is positive, stop the simulation
         if (won && results.totalProfit > 0) {
-            console.log(`Simulation stopped after round ${i + 1} as win resulted in positive profit (${results.totalProfit.toFixed(2)}).`);
+            console.log(`Simulation stopped after round ${i + 1} as win resulted in positive profit (${results.totalProfit}).`);
             break;
         }
     }
@@ -131,22 +153,22 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
     results.finalNonce = gameState.nonce;
 
     // Update final balance in results
-    results.finalBalance = parseFloat(gameState.balance.toFixed(2));
+    results.finalBalance = roundMonetaryValue(gameState.balance, gameState);
 
-    // Calculate the new cumulative profit including the current simulation and truncate to 2 decimal places
-    const newCumulativeProfit = parseFloat((previousCumulativeProfit + results.totalProfit).toFixed(2));
+    // Calculate the new cumulative profit including the current simulation
+    const newCumulativeProfit = roundMonetaryValue(previousCumulativeProfit + results.totalProfit, gameState);
 
     // Add the cumulative profit to the results object
     results.cumulativeProfit = newCumulativeProfit;
 
-    // Truncate the total profit to 2 decimal places
-    results.totalProfit = parseFloat(results.totalProfit.toFixed(2));
+    // Truncate the total profit to use rounded value
+    results.totalProfit = roundMonetaryValue(results.totalProfit, gameState);
 
     // Save the updated game state
     gameState.sessionHistory.push({
         simulationParams: {
             targetMultiplier: parseFloat(targetMultiplier.toFixed(2)),
-            initialBet: parseFloat(initialBet.toFixed(2)),
+            initialBet: roundBetAmount(initialBet, gameState),
             betMultiplier: parseFloat(betMultiplier.toFixed(2)),
             numberOfBets
         },
@@ -155,7 +177,7 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
     });
 
     // Add the overall cumulative profit to the game state
-    gameState.cumulativeProfit = newCumulativeProfit;
+    gameState.cumulativeProfit = roundMonetaryValue(newCumulativeProfit, gameState);
 
     saveGameState(gameState);
 
@@ -163,10 +185,10 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
     console.log(`Total Rounds: ${numberOfBets}`);
     console.log(`Wins: ${results.wins}`);
     console.log(`Losses: ${results.losses}`);
-    console.log(`Starting Balance: ${results.startingBalance.toFixed(2)}`);
-    console.log(`Final Balance: ${results.finalBalance.toFixed(2)}`);
-    console.log(`Total Profit: ${results.totalProfit.toFixed(2)}`);
-    console.log(`Cumulative Profit: ${results.cumulativeProfit.toFixed(2)}`);
+    console.log(`Starting Balance: ${results.startingBalance}`);
+    console.log(`Final Balance: ${results.finalBalance}`);
+    console.log(`Total Profit: ${results.totalProfit}`);
+    console.log(`Cumulative Profit: ${results.cumulativeProfit}`);
     console.log(`Final Nonce: ${results.finalNonce}`);
 
     return results;

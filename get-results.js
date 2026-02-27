@@ -1,4 +1,4 @@
-const cryptoProvider = require('../crypto.provider');
+const cryptoProvider = require('./crypto.provider');
 const { getMultiplier } = cryptoProvider;
 const fs = require('fs');
 const path = require('path');
@@ -20,10 +20,10 @@ function generateRandomString(length) {
 
 function main() {
     const args = process.argv.slice(2);
-    if (args.length < 1) {
-        console.log('Usage: node outcome-generator.js <rounds> [threshold] [clientSeed] [serverSeed] [--suppress-rounds]');
-        console.log('Example: node outcome-generator.js 10 2.0 abc123 def456');
-        console.log('Example with suppressed rounds: node outcome-generator.js 10 2.0 abc123 def456 --suppress-rounds');
+    if (args.length < 4) {
+        console.log('Usage: node get-results.js <clientSeed> <serverSeed> <start-nonce> <end-nonce> [threshold] [--suppress-rounds]');
+        console.log('Example: node get-results.js abc123 def456 0 100 2.0');
+        console.log('Example with suppressed rounds: node get-results.js abc123 def456 0 100 2.0 --suppress-rounds');
         process.exit(1);
     }
 
@@ -31,80 +31,79 @@ function main() {
     const suppressRounds = args.includes('--suppress-rounds');
     const filteredArgs = args.filter(arg => arg !== '--suppress-rounds');
 
-    if (filteredArgs.length < 1) {
-        console.log('Usage: node outcome-generator.js <rounds> [threshold] [clientSeed] [serverSeed] [--suppress-rounds]');
-        console.log('Example: node outcome-generator.js 10 2.0 abc123 def456');
-        console.log('Example with suppressed rounds: node outcome-generator.js 10 2.0 abc123 def456 --suppress-rounds');
+    if (filteredArgs.length < 4) {
+        console.log('Usage: node get-results.js <clientSeed> <serverSeed> <start-nonce> <end-nonce> [threshold] [--suppress-rounds]');
+        console.log('Example: node get-results.js abc123 def456 0 100 2.0');
+        console.log('Example with suppressed rounds: node get-results.js abc123 def456 0 100 2.0 --suppress-rounds');
         process.exit(1);
     }
 
-    const n = parseInt(filteredArgs[0], 10);
-    const threshold = filteredArgs.length > 1 ? parseFloat(filteredArgs[1]) : null;
-    let clientSeed = filteredArgs.length > 2 ? filteredArgs[2] : generateRandomString(32);
-    let serverSeed = filteredArgs.length > 3 ? filteredArgs[3] : generateRandomString(32);
+    let clientSeed = filteredArgs[0];
+    let serverSeed = filteredArgs[1];
+    const startNonce = parseInt(filteredArgs[2], 10);
+    const endNonce = parseInt(filteredArgs[3], 10);
+    const threshold = filteredArgs.length > 4 ? parseFloat(filteredArgs[4]) : null;
 
-    if (isNaN(n) || n <= 0) {
-        console.log('Error: rounds must be a positive integer');
+    if (isNaN(startNonce) || isNaN(endNonce) || startNonce < 0 || endNonce < startNonce) {
+        console.log('Error: start-nonce and end-nonce must be non-negative integers with end-nonce >= start-nonce');
         process.exit(1);
     }
 
-    console.log(`Generating outcomes for ${n} rounds`);
+    console.log(`Generating outcomes for nonces from ${startNonce} to ${endNonce}`);
     console.log(`Threshold: ${threshold !== null ? threshold : 'Not specified'}`);
     console.log(`Client Seed: ${clientSeed}`);
     console.log(`Server Seed: ${serverSeed}`);
     console.log('Outcomes:');
 
-    let csvContent = 'Round,Multiplier\n';
+    let csvContent = 'Nonce,Multiplier\n';
     let highestMultiplier = 0;
-    let highestRound = 0;
+    let highestNonce = startNonce;
 
-    for (let round = 1; round <= n; round++) {
-        const nonce = round - 1; // nonce starts at 0
+    const totalRounds = endNonce - startNonce + 1;
+    for (let i = 0; i < totalRounds; i++) {
+        const nonce = startNonce + i;
         const multiplier = getMultiplier(nonce, clientSeed, serverSeed);
 
         // Print individual round outcomes unless suppressed
         if (!suppressRounds) {
             // Highlight outcomes that are greater than or equal to threshold
             if (threshold !== null && multiplier >= threshold) {
-                console.log(`Round ${round}: ${multiplier}x \x1b[32m[HIGH]\x1b[0m`);
+                console.log(`Nonce ${nonce}: ${multiplier}x \x1b[32m[HIGH]\x1b[0m`);
             } else {
-                console.log(`Round ${round}: ${multiplier}x`);
+                console.log(`Nonce ${nonce}: ${multiplier}x`);
             }
         }
 
-        csvContent += `${round},${multiplier}\n`;
+        csvContent += `${nonce},${multiplier}\n`;
 
         // Track the highest multiplier
         if (multiplier > highestMultiplier) {
             highestMultiplier = multiplier;
-            highestRound = round;
+            highestNonce = nonce;
         }
     }
 
-    // Create csv-output directory if it doesn't exist (in parent directory)
-    const outputDir = path.join(__dirname, '..', 'csv-output');
+    // Create csv-output directory if it doesn't exist
+    const outputDir = path.join(__dirname, 'csv-output');
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
     // Create timestamped filename
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const outputFile = path.join(outputDir, `outcomes-${timestamp}.csv`);
-    
+    const outputFile = path.join(outputDir, `results-${startNonce}-${endNonce}-${timestamp}.csv`);
+
     fs.writeFileSync(outputFile, csvContent);
-    console.log(`\nOutcomes saved to ${outputFile}`);
+    console.log(`\nResults saved to ${outputFile}`);
 
     // Display highest outcome
-    console.log(`\nHighest outcome: Round ${highestRound} with ${highestMultiplier}x`);
+    console.log(`\nHighest outcome: Nonce ${highestNonce} with ${highestMultiplier}x`);
 
     // Display top 10 highest outcomes
     displayTopOutcomes(csvContent);
 
-    // Append highest outcome to highest-outcomes.csv
-    appendHighestOutcomeToCSV(highestRound, highestMultiplier, n);
-
     if (threshold !== null) {
-        const runTimeLengths = getRunTimeLengths(threshold, n, outputFile);
+        const runTimeLengths = getRunTimeLengths(threshold, totalRounds, csvContent);
         console.log(`\nRun time lengths below ${threshold}:`);
         runTimeLengths.forEach((length, index) => {
             if (index === runTimeLengths.length - 1 && length === -1) {
@@ -113,9 +112,9 @@ function main() {
                 console.log(`Run ${index + 1}: ${length} rounds`);
             }
         });
-        
+
         // Write run-time lengths to a separate CSV file with the same timestamp
-        const runTimeOutputFile = outputFile.replace('outcomes-', 'runtime-');
+        const runTimeOutputFile = outputFile.replace('results-', 'runtime-');
         writeRunTimeLengthsToCSV(runTimeOutputFile, runTimeLengths, threshold);
         console.log(`\nRun-time lengths saved to ${runTimeOutputFile}`);
     }
@@ -127,9 +126,9 @@ function displayTopOutcomes(csvContent) {
 
     // Skip header and parse outcomes
     for (let i = 1; i < lines.length; i++) {
-        const [round, multiplier] = lines[i].split(',');
+        const [nonce, multiplier] = lines[i].split(',');
         outcomes.push({
-            round: parseInt(round),
+            nonce: parseInt(nonce),
             multiplier: parseFloat(multiplier)
         });
     }
@@ -141,19 +140,18 @@ function displayTopOutcomes(csvContent) {
     console.log('\nTop 10 highest outcomes:');
     const count = Math.min(10, outcomes.length);
     for (let i = 0; i < count; i++) {
-        console.log(`Round ${outcomes[i].round}: ${outcomes[i].multiplier}x`);
+        console.log(`Nonce ${outcomes[i].nonce}: ${outcomes[i].multiplier}x`);
     }
 }
 
-function getRunTimeLengths(threshold, totalRounds, outputFile) {
-    const csvContent = fs.readFileSync(outputFile, 'utf8');
+function getRunTimeLengths(threshold, totalRounds, csvContent) {
     const lines = csvContent.trim().split('\n');
     const runTimeLengths = [];
     let count = 0;
 
     // Skip header
     for (let i = 1; i < lines.length; i++) {
-        const [round, multiplier] = lines[i].split(',');
+        const [, multiplier] = lines[i].split(',');
         const mult = parseFloat(multiplier);
 
         if (mult >= threshold) {
@@ -173,7 +171,7 @@ function getRunTimeLengths(threshold, totalRounds, outputFile) {
 function writeRunTimeLengthsToCSV(baseOutputFile, runTimeLengths, threshold) {
     // Create CSV content for run-time lengths
     let csvContent = `Run,Length,BelowThreshold\n`;
-    
+
     runTimeLengths.forEach((length, index) => {
         // Replace -1 with 'X' to indicate ongoing run without hitting threshold
         const displayLength = (index === runTimeLengths.length - 1 && length === -1) ? 'X' : length;
@@ -182,28 +180,6 @@ function writeRunTimeLengthsToCSV(baseOutputFile, runTimeLengths, threshold) {
 
     // Write the content to the run-time lengths file
     fs.writeFileSync(baseOutputFile, csvContent);
-}
-
-function appendHighestOutcomeToCSV(round, multiplier, totalRounds) {
-    const csvHeader = 'Round,Multiplier,TotalRounds\n';
-    const csvRow = `${round},${multiplier},${totalRounds}\n`;
-    const outputDir = path.join(__dirname, '..', 'csv-output');
-    
-    // Create csv-output directory if it doesn't exist
-    if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
-    }
-    
-    const outputFile = path.join(outputDir, 'highest-outcomes.csv');
-    
-    // Write header if file doesn't exist, otherwise append just the row
-    if (!fs.existsSync(outputFile)) {
-        fs.writeFileSync(outputFile, csvHeader + csvRow);
-    } else {
-        fs.appendFileSync(outputFile, csvRow);
-    }
-    
-    console.log(`Highest outcome appended to ${outputFile}`);
 }
 
 if (require.main === module) {

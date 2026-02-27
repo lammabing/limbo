@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 const { generateRandomString } = require('./cli-scripts/randomStringGenerator.js');
 
 const app = express();
-const port = 3150;
+const port = 3145;
 
 // Set default crypto provider (can be overridden via environment variable)
 // Available providers: 'bch', 'bustadice', 'stake'
@@ -32,7 +32,30 @@ const gameSessions = new Map();
 
 // Route to serve the main HTML form
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    // Read the index.html file and replace placeholders with environment variable values
+    const fs = require('fs');
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+
+    fs.readFile(indexPath, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading index.html:', err);
+            res.status(500).send('Error loading application');
+            return;
+        }
+
+        // Get the starting balance from environment variable or default to 10000
+        const startingBalance = process.env.STARTING_BALANCE ?
+                                parseFloat(process.env.STARTING_BALANCE) :
+                                10000;
+
+        // Replace the hardcoded balance in the HTML with the environment variable value
+        const modifiedData = data.replace(
+            /<span class="balance-amount" id="balance">[\d.]+<\/span>/,
+            `<span class="balance-amount" id="balance">${startingBalance.toFixed(2)}</span>`
+        );
+
+        res.send(modifiedData);
+    });
 });
 
 // Route to serve the bet verifier HTML form

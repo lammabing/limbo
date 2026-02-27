@@ -379,6 +379,19 @@
         </main>
     </div>
     
+    <script>
+        // Set the STARTING_BALANCE variable from a URL parameter or default value
+        window.STARTING_BALANCE = parseFloat(new URLSearchParams(window.location.search).get('startingBalance')) ||
+                                  10000;
+
+        // Update the balance display immediately with the starting balance
+        document.addEventListener('DOMContentLoaded', function() {
+            const balanceElement = document.getElementById('balance');
+            if (balanceElement) {
+                balanceElement.textContent = window.STARTING_BALANCE.toFixed(2);
+            }
+        });
+    </script>
     <script src="/script.js"></script>
 </body>
 </html>

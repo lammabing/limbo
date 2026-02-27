@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Game state
     const gameState = {
-        balance: 10000,
+        balance: window.STARTING_BALANCE || 10000,  // Allow starting balance to be set externally
         currentBet: 0,
         currentTarget: 0,
         gameActive: false,
