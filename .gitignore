@@ -19,6 +19,9 @@ logs/
 # CSV output directory (for generated outcome files)
 csv-output/
 
+# Generated game session state
+game-session.json
+
 # Test files and temporary files
 *.tmp
 *.temp
