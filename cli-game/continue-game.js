@@ -1,12 +1,12 @@
 /**
  * Continues a game simulation using the fixed seeds from init-game.js
  * Updates the nonce for each game played and records the results.
- * 
+ *
  * Parameters:
  * - targetMultiplier: The multiplier threshold for winning
- * - initialBet: The starting bet amount
- * - betMultiplier: The factor by which to increase the bet after losses
  * - numberOfBets: The number of bets to make
+ * - initialBet: The starting bet amount (default: 1)
+ * - betMultiplier: The factor by which to increase the bet after losses (default: 1)
  */
 
 const crypto = require('crypto');
@@ -51,7 +51,25 @@ function saveGameState(gameState) {
     fs.writeFileSync(gameStateFile, JSON.stringify(gameState, null, 2));
 }
 
-function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfBets) {
+/**
+ * Calculates the probability that at least one of n trials
+ * attains a value >= x
+ * Based on limbo distribution: P(X >= x) = 1/x for a single trial
+ * Formula: P(at least one >= x in n trials) = 1 - (1 - 1/x)^n
+ *
+ * @param {number} x - Target threshold (>= 1)
+ * @param {number} n - Number of trials
+ * @returns {number} Probability (0-1)
+ */
+function probAtLeastOne(x, n) {
+    if (x < 1) return 1;
+    if (x === Infinity) return 0;
+    if (n <= 0) return 0;
+
+    return 1 - Math.pow(1 - 1 / x, n);
+}
+
+function continueSimulate(targetMultiplier, numberOfBets, initialBet = 1, betMultiplier = 1) {
     // Load the current game state
     let gameState = loadGameState();
 
@@ -67,11 +85,12 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
         betMultiplier,
         numberOfBets,
         startNonce: gameState.nonce,
-        outcomes: [],
         finalNonce: null,
         totalProfit: 0,
         wins: 0,
         losses: 0,
+        winningBetAmounts: [],
+        winningPayouts: [],
         startingBalance: gameState.balance,  // Track the balance at the start of this simulation
         finalBalance: null
     };
@@ -87,7 +106,7 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
 
         // Check if we have enough balance to place the bet
         if (gameState.balance < originalBetAmount) {
-            console.log(`Cannot place bet of ${originalBetAmount} - insufficient balance (${gameState.balance}). Simulation ended.`);
+            console.log(`Cannot place bet of ${originalBetAmount.toFixed(2)} - insufficient balance (${gameState.balance.toFixed(2)}). Simulation ended.`);
             break;
         }
 
@@ -106,6 +125,12 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
             // Reset bet to initial amount after a win
             currentBet = roundMonetaryValue(initialBet, gameState);
             results.wins++;
+            // Record the bet amount that was placed on this winning round
+            results.winningBetAmounts.push(originalBetAmount);
+            // Record the win amount paid out for this winning round (bet * target multiplier)
+            results.winningPayouts.push(payout);
+            // Display the actual outcome multiplier on win
+            console.log(`WIN! Round ${i + 1}: Outcome ${multiplier.toFixed(2)}x (Target: ${targetMultiplier.toFixed(2)}x)`);
         } else {
             // Increase bet for next round after a loss
             // Apply multiplier first, then round to avoid situations where small fractional bets
@@ -123,19 +148,6 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
         // Add to total wagered
         totalWagered = roundMonetaryValue(totalWagered + originalBetAmount, gameState);
 
-        // Record this round's outcome
-        results.outcomes.push({
-            round: i + 1,
-            nonce: gameState.nonce,
-            betAmount: roundBetAmount(originalBetAmount, gameState),
-            multiplier: parseFloat(multiplier.toFixed(2)),  // multiplier is not a monetary value, so keep as is
-            targetMultiplier: parseFloat(targetMultiplier.toFixed(2)),  // targetMultiplier is not a monetary value, so keep as is
-            won: won,
-            payout: roundMonetaryValue(payout, gameState),
-            profit: roundMonetaryValue(roundProfit, gameState),
-            balance: roundMonetaryValue(gameState.balance, gameState)  // Add balance after this round
-        });
-
         // Update the nonce for the next round
         gameState.nonce++;
 
@@ -144,7 +156,7 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
 
         // If there was a win and total profit is positive, stop the simulation
         if (won && results.totalProfit > 0) {
-            console.log(`Simulation stopped after round ${i + 1} as win resulted in positive profit (${results.totalProfit}).`);
+            console.log(`Simulation stopped after round ${i + 1} as win resulted in positive profit (${results.totalProfit.toFixed(2)}).`);
             break;
         }
     }
@@ -182,34 +194,47 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
     saveGameState(gameState);
 
     // Display results in table format
-    console.log('\nSimulation Results');
-    console.log('==================');
-    
-    const { createTable, createKeyValueTable, createSectionHeader } = require('../cli-scripts/table-utils.js');
-    
+    const { createTable, createKeyValueTable } = require('../cli-scripts/table-utils.js');
+
     // Summary table
-    const summaryHeaders = ['Rounds', 'Wins', 'Losses', 'Start Balance', 'Final Balance', 'Profit', 'Cumulative Profit'];
-    const profitDisplay = results.totalProfit >= 0 ? `+${results.totalProfit}` : results.totalProfit;
+    const actualRounds = results.wins + results.losses;
+    const summaryHeaders = ['Rounds', 'Wins', 'Losses', 'Total Bets', 'Start Balance', 'Final Balance', 'Profit', 'Cumulative Profit'];
+    const profitDisplay = results.totalProfit >= 0 ? `+${results.totalProfit.toFixed(2)}` : results.totalProfit.toFixed(2);
     const summaryRows = [[
-        numberOfBets,
+        actualRounds,
         results.wins,
         results.losses,
-        results.startingBalance,
-        results.finalBalance,
+        totalWagered.toFixed(2),
+        results.startingBalance.toFixed(2),
+        results.finalBalance.toFixed(2),
         profitDisplay,
-        results.cumulativeProfit
+        results.cumulativeProfit.toFixed(2)
     ]];
-    
-    console.log(createTable(summaryHeaders, summaryRows, { 
-        columnAlignments: { 0: 'right', 1: 'right', 2: 'right', 3: 'right', 4: 'right', 5: 'right', 6: 'right' }
+
+    console.log(createTable(summaryHeaders, summaryRows, {
+        columnAlignments: { 0: 'right', 1: 'right', 2: 'right', 3: 'right', 4: 'right', 5: 'right', 6: 'right', 7: 'right' }
     }));
-    
+
     // Details table
-    console.log(createSectionHeader('Game Details'));
+    const winProbability = probAtLeastOne(targetMultiplier, numberOfBets);
+
+    // Show the bet amount placed on the winning round (depends on initial bet and,
+    // when greater than 1.0, on how many losses were accumulated via betMultiplier)
+    // along with the win amount paid out (winning round bet * target multiplier)
+    const lastWinIndex = results.winningBetAmounts.length - 1;
+    const winningRoundEntries = lastWinIndex >= 0
+        ? {
+            'Winning Round Bet': results.winningBetAmounts[lastWinIndex].toFixed(2),
+            'Win Amount': results.winningPayouts[lastWinIndex].toFixed(2)
+        }
+        : {};
+
     const details = {
-        'Target Multiplier': `${targetMultiplier}x`,
-        'Initial Bet': initialBet,
-        'Bet Multiplier': `${betMultiplier}x`,
+        'Target Multiplier': `${targetMultiplier.toFixed(2)}x`,
+        'Initial Bet': initialBet.toFixed(2),
+        ...winningRoundEntries,
+        [`P(X≥${targetMultiplier.toFixed(2)}, n=${numberOfBets})`]: `${(winProbability * 100).toFixed(2)}%`,
+        'Bet Multiplier': `${betMultiplier.toFixed(2)}x`,
         'Start Nonce': results.startNonce,
         'Final Nonce': results.finalNonce
     };
@@ -221,23 +246,23 @@ function continueSimulate(targetMultiplier, initialBet, betMultiplier, numberOfB
 // CLI functionality to allow calling from command line
 if (require.main === module) {
     // If called directly from command line
-    if (process.argv.length !== 6) { // node continue-simulate.js + 4 arguments
-        console.error('Usage: node continue-simulate.js <targetMultiplier> <initialBet> <betMultiplier> <numberOfBets>');
+    if (process.argv.length < 4 || process.argv.length > 6) {
+        console.error('Usage: node continue-game.js <targetMultiplier> <numberOfBets> [initialBet] [betMultiplier]');
         console.error('  targetMultiplier: The multiplier threshold for winning');
-        console.error('  initialBet: The starting bet amount');
-        console.error('  betMultiplier: The factor by which to increase the bet after losses');
         console.error('  numberOfBets: The number of bets to make (or until balance is insufficient)');
+        console.error('  initialBet: The starting bet amount (default: 1)');
+        console.error('  betMultiplier: The factor by which to increase the bet after losses (default: 1)');
         process.exit(1);
     }
 
-    const [, , targetMultiplier, initialBet, betMultiplier, numberOfBets] = process.argv;
+    const [, , targetMultiplier, numberOfBets, initialBet, betMultiplier] = process.argv;
 
     try {
         continueSimulate(
             parseFloat(targetMultiplier),
-            parseFloat(initialBet),
-            parseFloat(betMultiplier),
-            parseInt(numberOfBets)
+            parseInt(numberOfBets),
+            initialBet ? parseFloat(initialBet) : 1,
+            betMultiplier ? parseFloat(betMultiplier) : 1
         );
     } catch (error) {
         console.error('Error in simulation:', error.message);

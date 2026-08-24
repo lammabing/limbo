@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Limbo CLI Game - Web Interface</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' font-size='80'><text y='.9em' x='50%' text-anchor='middle'>🎮</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #00d4ff;
+            font-size: 2.5rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #a0a0a0;
+            font-size: 0.9rem;
+        }
+
+        .form-group input[type="number"],
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .form-group-inline {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .form-group-inline label {
+            display: block;
+            margin-bottom: 5px;
+            color: #a0a0a0;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .form-group-inline input[type="number"] {
+            width: 100%;
+            padding: 10px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .form-row .btn {
+            padding: 10px 20px;
+            height: fit-content;
+            white-space: nowrap;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4757, #cc3344);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 71, 87, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .status-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-row:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            color: #a0a0a0;
+        }
+
+        .status-value {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .status-value.positive {
+            color: #00ff88;
+        }
+
+        .status-value.negative {
+            color: #ff4757;
+        }
+
+        .output-section {
+            margin-top: 20px;
+        }
+
+        .output-box {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Fira Code', Consolas, Monaco, monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .output-box::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .output-box::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .output-box::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.5);
+            border-radius: 4px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .log-entry.win {
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+        }
+
+        .log-entry.loss {
+            background: rgba(255, 71, 87, 0.1);
+            color: #ff6b7a;
+        }
+
+        .log-entry.info {
+            color: #a0a0a0;
+        }
+
+        .result-tables {
+            margin-top: 10px;
+        }
+
+        .result-tables table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+
+        .result-tables th,
+        .result-tables td {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            text-align: right;
+        }
+
+        .result-tables th {
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        .result-tables td:first-child,
+        .result-tables th:first-child {
+            text-align: left;
+        }
+
+        .result-tables .positive {
+            color: #00ff88;
+        }
+
+        .result-tables .negative {
+            color: #ff4757;
+        }
+
+        .result-message {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 3px solid #00d4ff;
+            color: #a0a0a0;
+            font-size: 0.85rem;
+        }
+
+        .seed-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            word-break: break-all;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            transition: width 0.3s ease;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .alert-error {
+            background: rgba(255, 71, 87, 0.2);
+            border: 1px solid #ff4757;
+            color: #ff6b7a;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+
+        .alert-info {
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Limbo Game Simulator</h1>
+
+        <!-- Alert Messages -->
+        <div id="alertContainer"></div>
+
+        <div class="grid">
+            <!-- Initialization Card -->
+            <div class="card">
+                <h2>🚀 Initialize Game Session</h2>
+                <form id="initForm">
+                    <div class="form-group">
+                        <label for="startingBalance">Starting Balance</label>
+                        <input type="number" id="startingBalance" name="startingBalance" value="100000" min="0" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="clientSeed">Client Seed (optional - generated if empty)</label>
+                        <input type="text" id="clientSeed" name="clientSeed" placeholder="Leave empty to generate randomly">
+                    </div>
+                    <div class="form-group">
+                        <label for="serverSeed">Server Seed (optional - generated if empty)</label>
+                        <input type="text" id="serverSeed" name="serverSeed" placeholder="Leave empty to generate randomly">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="roundDownValues" name="roundDownValues">
+                                <span>Round Down Monetary Values</span>
+                            </div>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Initialize Session</button>
+                </form>
+            </div>
+
+            <!-- Simulation Card -->
+            <div class="card">
+                <h2>🎯 Run Simulation</h2>
+                <form id="simulationForm">
+                    <div class="form-row">
+                        <div class="form-group-inline">
+                            <label for="targetMultiplier">Target (x)</label>
+                            <input type="number" id="targetMultiplier" name="targetMultiplier" value="120000" min="1.01" step="0.01">
+                        </div>
+                        <div class="form-group-inline">
+                            <label for="initialBet">Bet</label>
+                            <input type="number" id="initialBet" name="initialBet" value="1" min="1" step="1">
+                        </div>
+                        <div class="form-group-inline">
+                            <label for="betMultiplier">Multiplier</label>
+                            <input type="number" id="betMultiplier" name="betMultiplier" value="1" min="1" step="0.1">
+                        </div>
+                        <div class="form-group-inline">
+                            <label for="numberOfBets">Bets</label>
+                            <input type="number" id="numberOfBets" name="numberOfBets" value="100000" min="1" step="1">
+                        </div>
+                        <button type="submit" class="btn btn-success">Run Simulation</button>
+                    </div>
+                </form>
+
+                <div id="progressSection" class="hidden">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <p style="text-align: center; margin-top: 5px; color: #a0a0a0;">
+                        <span id="progressText">0</span> / <span id="totalBetsText">0</span> bets
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div class="card output-section">
+            <div id="resultsSummary" class="hidden">
+                <div class="status-box">
+                    <div class="grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 0;">
+                        <div class="status-row">
+                            <span class="status-label">Rounds:</span>
+                            <span class="status-value" id="resultRounds">0</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-label">Wins:</span>
+                            <span class="status-value positive" id="resultWins">0</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-label">Losses:</span>
+                            <span class="status-value negative" id="resultLosses">0</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-label">Total Bets:</span>
+                            <span class="status-value" id="resultTotalBets">0</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-label">Start Balance:</span>
+                            <span class="status-value" id="resultStartBalance">0</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-label">Final Balance:</span>
+                            <span class="status-value" id="resultFinalBalance">0</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-label">Profit:</span>
+                            <span class="status-value" id="resultProfit">0</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-label">Cumulative Profit:</span>
+                            <span class="status-value" id="resultCumulativeProfit">0</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-label">Start Nonce:</span>
+                            <span class="status-value" id="resultStartNonce">0</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-label">Final Nonce:</span>
+                            <span class="status-value" id="resultFinalNonce">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <div class="output-box" id="outputLog">
+                <div class="log-entry info">Initialize a game session to start playing...</div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="clearLog()">Clear Log</button>
+                <button class="btn btn-danger" onclick="resetGame()">Reset Game</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state management
+        let gameState = null;
+
+        // API base URL (empty for same origin)
+        const API_BASE = '';
+
+        // API helper functions
+        async function apiRequest(endpoint, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            const response = await fetch(`${API_BASE}${endpoint}`, options);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Request failed');
+            }
+
+            return data;
+        }
+
+        // Initialize game session via API
+        async function initGame(startingBalance, roundDownValues, clientSeed, serverSeed) {
+            const response = await apiRequest('/api/init', 'POST', {
+                startingBalance,
+                roundDownMonetaryValues: roundDownValues,
+                clientSeed: clientSeed || undefined,
+                serverSeed: serverSeed || undefined
+            });
+
+            gameState = response.gameState;
+
+            // Save to localStorage for persistence
+            localStorage.setItem('limboGameState', JSON.stringify(gameState));
+
+            // Update UI immediately to show reset values
+
+            addLog(`Game session initialized! Balance: ${startingBalance}, Nonce: 0`, 'info');
+            addLog(`Client Seed: ${gameState.clientSeed}`, 'info');
+            addLog(`Server Seed: ${gameState.serverSeed}`, 'info');
+            showAlert('Game session initialized successfully!', 'success');
+
+            return gameState;
+        }
+
+        // Get current game state via API
+        async function loadGameStateFromServer() {
+            try {
+                const response = await apiRequest('/api/state', 'GET');
+                gameState = response.gameState;
+                localStorage.setItem('limboGameState', JSON.stringify(gameState));
+                return gameState;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        // Reset game via API
+        async function resetGameAPI() {
+            await apiRequest('/api/reset', 'POST');
+            gameState = null;
+            localStorage.removeItem('limboGameState');
+        }
+
+        // Utility functions (for local calculations if needed)
+        function roundMonetaryValue(value, roundDown) {
+            if (roundDown) {
+                return Math.floor(value);
+            }
+            return value;
+        }
+
+        function roundBetAmount(value, roundDown) {
+            if (roundDown) {
+                const roundedValue = Math.floor(value);
+                return Math.max(1, roundedValue);
+            }
+            return value;
+        }
+
+        // Alert system
+        function showAlert(message, type = 'info') {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.innerHTML = '';
+            container.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Logging system
+        function addLog(message, type = 'info') {
+            const logBox = document.getElementById('outputLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = message;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('outputLog').innerHTML = '';
+        }
+
+        // Run simulation
+        async function runSimulation(targetMultiplier, initialBet, betMultiplier, numberOfBets) {
+            if (!gameState) {
+                showAlert('Please initialize a game session first!', 'error');
+                return;
+            }
+
+            // Show progress
+            document.getElementById('progressSection').classList.remove('hidden');
+            document.getElementById('totalBetsText').textContent = numberOfBets;
+            document.getElementById('progressFill').style.width = '50%';
+            document.getElementById('progressText').textContent = 'Running...';
+
+            try {
+                const results = await apiRunSimulation(targetMultiplier, initialBet, betMultiplier, numberOfBets);
+
+                // Update progress to complete
+                document.getElementById('progressFill').style.width = '100%';
+                document.getElementById('progressText').textContent = 'Complete';
+
+                // Update UI
+                displayResults(results);
+
+                // Render result tables as HTML
+                renderResultTables(results, targetMultiplier, initialBet, betMultiplier, numberOfBets);
+
+            } catch (error) {
+                showAlert(`Simulation failed: ${error.message}`, 'error');
+                addLog(`Error: ${error.message}`, 'loss');
+                document.getElementById('progressFill').style.width = '0%';
+                document.getElementById('progressText').textContent = 'Failed';
+            }
+        }
+
+        // Calculate probability: P(at least one X >= x in n trials) = 1 - (1 - 1/x)^n
+        function probAtLeastOne(x, n) {
+            if (x < 1) return 1;
+            if (x === Infinity) return 0;
+            if (n <= 0) return 0;
+            return 1 - Math.pow(1 - 1 / x, n);
+        }
+
+        // Render result tables as HTML
+        function renderResultTables(results, targetMultiplier, initialBet, betMultiplier, numberOfBets) {
+            const logBox = document.getElementById('outputLog');
+            const profitDisplay = results.profit >= 0 ? `+${results.profit.toFixed(2)}` : results.profit.toFixed(2);
+            const cumProfitDisplay = results.cumulativeProfit >= 0 ? `+${results.cumulativeProfit.toFixed(2)}` : results.cumulativeProfit.toFixed(2);
+            const profitClass = results.profit >= 0 ? 'positive' : 'negative';
+            const winProbability = probAtLeastOne(targetMultiplier, numberOfBets);
+
+            // Show the bet amount placed on the winning round and its win amount
+            // only when at least one win occurred (same behaviour as continue-game.js)
+            const winningRows = results.winningRoundBet !== null && results.winningRoundBet !== undefined
+                ? `<tr><td>Winning Round Bet</td><td>${results.winningRoundBet.toFixed(2)}</td></tr><tr><td>Win Amount</td><td>${results.winAmount.toFixed(2)}</td></tr>`
+                : '';
+
+            const summaryTable = `<table><thead><tr><th>Rounds</th><th>Wins</th><th>Losses</th><th>Total Bets</th><th>Start Balance</th><th>Final Balance</th><th>Profit</th><th>Cumulative Profit</th></tr></thead><tbody><tr><td>${results.rounds}</td><td>${results.wins}</td><td>${results.losses}</td><td>${results.totalBets.toFixed(2)}</td><td>${results.startBalance.toFixed(2)}</td><td>${results.finalBalance.toFixed(2)}</td><td class="${profitClass}">${profitDisplay}</td><td class="${results.cumulativeProfit >= 0 ? 'positive' : 'negative'}">${cumProfitDisplay}</td></tr></tbody></table>`;
+            const detailsTable = `<table><thead><tr><th>Property</th><th>Value</th></tr></thead><tbody><tr><td>Target Multiplier</td><td>${targetMultiplier.toFixed(2)}x</td></tr><tr><td>Initial Bet</td><td>${initialBet.toFixed(2)}</td></tr>${winningRows}<tr><td>P(X≥${targetMultiplier.toFixed(2)}, n=${numberOfBets})</td><td>${(winProbability * 100).toFixed(2)}%</td></tr><tr><td>Bet Multiplier</td><td>${betMultiplier.toFixed(2)}x</td></tr><tr><td>Start Nonce</td><td>${results.startNonce}</td></tr><tr><td>Final Nonce</td><td>${results.finalNonce}</td></tr></tbody></table>`;
+            const tablesHtml = `<div class="result-tables">${summaryTable}${detailsTable}${results.endedEarly ? `<div class="result-message">${results.endedReason}</div>` : ''}</div>`;
+
+            const entry = document.createElement('div');
+            entry.className = 'log-entry info';
+            entry.innerHTML = tablesHtml;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        // API-based simulation that streams results
+        async function apiRunSimulation(targetMultiplier, initialBet, betMultiplier, numberOfBets) {
+            const response = await fetch(`${API_BASE}/api/simulate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ targetMultiplier, initialBet, betMultiplier, numberOfBets })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Simulation failed');
+            }
+
+            // Update local game state
+            gameState.nonce = data.gameState.nonce;
+            gameState.balance = data.gameState.balance;
+            gameState.cumulativeProfit = data.gameState.cumulativeProfit;
+            localStorage.setItem('limboGameState', JSON.stringify(gameState));
+
+            return data.results;
+        }
+
+        // Display results
+        function displayResults(results) {
+            document.getElementById('resultsSummary').classList.remove('hidden');
+            document.getElementById('resultRounds').textContent = results.rounds;
+            document.getElementById('resultWins').textContent = results.wins;
+            document.getElementById('resultLosses').textContent = results.losses;
+            document.getElementById('resultTotalBets').textContent = results.totalBets.toFixed(2);
+            document.getElementById('resultStartBalance').textContent = results.startBalance.toFixed(2);
+            document.getElementById('resultFinalBalance').textContent = results.finalBalance.toFixed(2);
+
+            const profitEl = document.getElementById('resultProfit');
+            profitEl.textContent = (results.profit >= 0 ? '+' : '') + results.profit.toFixed(2);
+            profitEl.className = `status-value ${results.profit >= 0 ? 'positive' : 'negative'}`;
+
+            const cumProfitEl = document.getElementById('resultCumulativeProfit');
+            cumProfitEl.textContent = (results.cumulativeProfit >= 0 ? '+' : '') + results.cumulativeProfit.toFixed(2);
+            cumProfitEl.className = `status-value ${results.cumulativeProfit >= 0 ? 'positive' : 'negative'}`;
+
+            document.getElementById('resultStartNonce').textContent = results.startNonce;
+            document.getElementById('resultFinalNonce').textContent = results.finalNonce;
+        }
+
+        // Reset game
+        async function resetGame() {
+            if (confirm('Are you sure you want to reset the game? This will clear all session data.')) {
+                try {
+                    await resetGameAPI();
+                    document.getElementById('resultsSummary').classList.add('hidden');
+                    document.getElementById('progressSection').classList.add('hidden');
+                    clearLog();
+                    addLog('Game has been reset. Initialize a new session to start playing.', 'info');
+                    showAlert('Game reset successfully!', 'success');
+                } catch (error) {
+                    showAlert(`Reset failed: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Load saved game state
+        async function loadGameState() {
+            // Try to load from server first
+            const serverState = await loadGameStateFromServer();
+            if (serverState) {
+                addLog(`Loaded session from server. Nonce: ${serverState.nonce}, Balance: ${serverState.balance.toFixed(2)}`, 'info');
+                return;
+            }
+
+            // Fallback to localStorage
+            const saved = localStorage.getItem('limboGameState');
+            if (saved) {
+                try {
+                    gameState = JSON.parse(saved);
+                    addLog(`Loaded existing session. Nonce: ${gameState.nonce}, Balance: ${gameState.balance.toFixed(2)}`, 'info');
+                } catch (e) {
+                    console.error('Failed to load game state:', e);
+                }
+            }
+        }
+
+        // Event listeners
+        document.getElementById('initForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const startingBalance = parseFloat(document.getElementById('startingBalance').value);
+            const roundDownValues = document.getElementById('roundDownValues').checked;
+
+            if (isNaN(startingBalance) || startingBalance < 0) {
+                showAlert('Starting balance must be a non-negative number', 'error');
+                return;
+            }
+
+            const clientSeed = document.getElementById('clientSeed').value.trim();
+            const serverSeed = document.getElementById('serverSeed').value.trim();
+
+            await initGame(startingBalance, roundDownValues, clientSeed, serverSeed);
+        });
+
+        document.getElementById('simulationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const targetMultiplier = parseFloat(document.getElementById('targetMultiplier').value);
+            const initialBet = parseFloat(document.getElementById('initialBet').value);
+            const betMultiplier = parseFloat(document.getElementById('betMultiplier').value);
+            const numberOfBets = parseInt(document.getElementById('numberOfBets').value);
+
+            if (targetMultiplier < 1.01) {
+                showAlert('Target multiplier must be at least 1.01', 'error');
+                return;
+            }
+            if (initialBet < 1) {
+                showAlert('Initial bet must be at least 1', 'error');
+                return;
+            }
+            if (betMultiplier < 1) {
+                showAlert('Bet multiplier must be at least 1', 'error');
+                return;
+            }
+            if (numberOfBets < 1) {
+                showAlert('Number of bets must be at least 1', 'error');
+                return;
+            }
+
+            // Disable button during simulation
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+
+            await runSimulation(targetMultiplier, initialBet, betMultiplier, numberOfBets);
+
+            submitBtn.disabled = false;
+        });
+
+        // Initialize on page load
+        loadGameState();
+    </script>
+</body>
+</html>

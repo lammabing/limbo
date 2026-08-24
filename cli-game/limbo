@@ -28,7 +28,8 @@ play_game() {
     local number_of_bets=$4
     
     echo "Playing game with parameters: target_multiplier=$target_multiplier, initial_bet=$initial_bet, bet_multiplier=$bet_multiplier, number_of_bets=$number_of_bets"
-    node "$SCRIPT_DIR/continue-game.js" "$target_multiplier" "$initial_bet" "$bet_multiplier" "$number_of_bets"
+    # continue-game.js expects: <targetMultiplier> <numberOfBets> [initialBet] [betMultiplier]
+    node "$SCRIPT_DIR/continue-game.js" "$target_multiplier" "$number_of_bets" "$initial_bet" "$bet_multiplier"
 }
 
 # Function to display help
