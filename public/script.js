@@ -62,24 +62,27 @@ document.addEventListener('DOMContentLoaded', function() {
         roundsTallyTableBody: document.getElementById('roundsTallyTableBody')
     };
 
-    // Convert slider position to exponential value (1.01 to 10000)
+    // Convert slider position to exponential value (1.01 to 1000000)
     function convertSliderValueToMultiplier(sliderVal) {
         // Slider value ranges from 0 to 100
-        // We want to map this to an exponential scale from 1.01 to 10000
-        // With 50 (center) mapping to 100
+        // We want to map this to an exponential scale from 1.01 to 1000000
+        // With 3 segments of 2 decades each: 1.01-100, 100-10000, 10000-1000000
         
         const sliderNum = parseInt(sliderVal);
         
-        if (sliderNum <= 50) {
-            // Map 0-50 to 1.01-100 with an exponential curve that passes through (50, 100)
-            const exponent = 2 * (sliderNum / 50);  // When sliderNum=50, exponent=2, so 10^2=100
+        if (sliderNum <= 33) {
+            // Map 0-33 to 1.01-100 with an exponential curve that passes through (33, 100)
+            const exponent = 2 * (sliderNum / 33);  // When sliderNum=33, exponent=2, so 10^2=100
             return Math.max(1.01, Math.min(100, Math.round(Math.pow(10, exponent) * 100) / 100));
-        } else {
-            // Map 50-100 to 100-10000 with an exponential curve
-            // The formula ensures smooth continuation from the first half
-            // At sliderNum=100, we want value=10000, so 100*(10^x) where x is calculated
-            const exponent = 2 * ((sliderNum - 50) / 50);  // When sliderNum=100, exponent=2, so 100*10^2=10000
+        } else if (sliderNum <= 67) {
+            // Map 33-67 to 100-10000 with an exponential curve
+            // The formula ensures smooth continuation from the first segment
+            const exponent = 2 * ((sliderNum - 33) / 34);  // When sliderNum=67, exponent=2, so 100*10^2=10000
             return Math.min(10000, Math.round(100 * Math.pow(10, exponent)));
+        } else {
+            // Map 67-100 to 10000-1000000 with an exponential curve
+            const exponent = 2 * ((sliderNum - 67) / 33);  // When sliderNum=100, exponent=2, so 10000*10^2=1000000
+            return Math.min(1000000, Math.round(10000 * Math.pow(10, exponent)));
         }
     }
     
@@ -89,11 +92,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // For values from 1.01 to 100
         if (val <= 100 && val >= 1.01) {
-            return Math.max(0, Math.min(50, Math.round(50 * Math.log10(val) / 2)));
+            return Math.max(0, Math.min(33, Math.round(33 * Math.log10(val) / 2)));
         }
         // For values from 100 to 10000
-        else if (val > 100) {
-            return Math.min(100, Math.max(50, Math.round(50 + 50 * Math.log10(val / 100) / 2)));
+        else if (val <= 10000) {
+            return Math.min(67, Math.max(33, Math.round(33 + 34 * Math.log10(val / 100) / 2)));
+        }
+        // For values from 10000 to 1000000
+        else if (val > 10000) {
+            return Math.min(100, Math.max(67, Math.round(67 + 33 * Math.log10(val / 10000) / 2)));
         } else {
             return 50; // default
         }
