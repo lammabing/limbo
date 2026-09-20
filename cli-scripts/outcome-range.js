@@ -31,14 +31,16 @@ function main() {
 
     // Check for suppress flag and remove it from args to avoid affecting positional arguments
     const suppressRounds = args.includes('--suppress-rounds');
-    const filteredArgs = args.filter(arg => arg !== '--suppress-rounds');
+    const noCsv = args.includes('--no-csv');
+    const filteredArgs = args.filter(arg => arg !== '--suppress-rounds' && arg !== '--no-csv');
 
     if (filteredArgs.length < 2) {
-        console.log('Usage: node outcome-range.js <start-round> <end-round> [n] [clientSeed] [serverSeed] [--suppress-rounds]');
+        console.log('Usage: node outcome-range.js <start-round> <end-round> [n] [clientSeed] [serverSeed] [--suppress-rounds] [--no-csv]');
         console.log('Example: node outcome-range.js 1 100');
         console.log('Example: node outcome-range.js 1 100 5');
         console.log('Example: node outcome-range.js 50 150 abc123 def456');
         console.log('Example with suppressed rounds: node outcome-range.js 1 100 --suppress-rounds');
+        console.log('Example without CSV output: node outcome-range.js 1 100 --no-csv');
         process.exit(1);
     }
 
@@ -110,10 +112,12 @@ function main() {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const outputFile = path.join(outputDir, `outcomes-range-${timestamp}.csv`);
 
-    fs.writeFileSync(outputFile, csvContent);
-    
-    if (!suppressRounds) {
-        console.log(`\nOutcomes saved to ${outputFile}`);
+    if (!noCsv) {
+        fs.writeFileSync(outputFile, `ClientSeed,${clientSeed}\nServerSeed,${serverSeed}\n${csvContent}`);
+        
+        if (!suppressRounds) {
+            console.log(`\nOutcomes saved to ${outputFile}`);
+        }
     }
 
     // Display summary
@@ -130,7 +134,11 @@ function main() {
     // Display top n highest outcomes in range
     displayTopOutcomes(results, n);
 
-    console.log(`\nRange results saved to ${outputFile}`);
+    if (!noCsv) {
+        console.log(`\nRange results saved to ${outputFile}`);
+    } else {
+        console.log('\nCSV output disabled');
+    }
 }
 
 function displayTopOutcomes(results, n) {

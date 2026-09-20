@@ -19,6 +19,9 @@ const gameStateFile = path.join(__dirname, 'game-session.json');
 // Import the multiplier function from the crypto module
 const { getMultiplier } = require('../crypto.bch.js');
 
+// Import currency formatting helper
+const { formatCurrency } = require('../cli-scripts/table-utils.js');
+
 function loadGameState() {
     try {
         const data = fs.readFileSync(gameStateFile, 'utf8');
@@ -106,7 +109,7 @@ function continueSimulate(targetMultiplier, numberOfBets, initialBet = 1, betMul
 
         // Check if we have enough balance to place the bet
         if (gameState.balance < originalBetAmount) {
-            console.log(`Cannot place bet of ${originalBetAmount.toFixed(2)} - insufficient balance (${gameState.balance.toFixed(2)}). Simulation ended.`);
+            console.log(`Cannot place bet of ${formatCurrency(originalBetAmount)} - insufficient balance (${formatCurrency(gameState.balance)}). Simulation ended.`);
             break;
         }
 
@@ -156,7 +159,7 @@ function continueSimulate(targetMultiplier, numberOfBets, initialBet = 1, betMul
 
         // If there was a win and total profit is positive, stop the simulation
         if (won && results.totalProfit > 0) {
-            console.log(`Simulation stopped after round ${i + 1} as win resulted in positive profit (${results.totalProfit.toFixed(2)}).`);
+            console.log(`Simulation stopped after round ${i + 1} as win resulted in positive profit (${formatCurrency(results.totalProfit)}).`);
             break;
         }
     }
@@ -199,16 +202,16 @@ function continueSimulate(targetMultiplier, numberOfBets, initialBet = 1, betMul
     // Summary table
     const actualRounds = results.wins + results.losses;
     const summaryHeaders = ['Rounds', 'Wins', 'Losses', 'Total Bets', 'Start Balance', 'Final Balance', 'Profit', 'Cumulative Profit'];
-    const profitDisplay = results.totalProfit >= 0 ? `+${results.totalProfit.toFixed(2)}` : results.totalProfit.toFixed(2);
+    const profitDisplay = results.totalProfit >= 0 ? `+${formatCurrency(results.totalProfit)}` : formatCurrency(results.totalProfit);
     const summaryRows = [[
         actualRounds,
         results.wins,
         results.losses,
-        totalWagered.toFixed(2),
-        results.startingBalance.toFixed(2),
-        results.finalBalance.toFixed(2),
+        formatCurrency(totalWagered),
+        formatCurrency(results.startingBalance),
+        formatCurrency(results.finalBalance),
         profitDisplay,
-        results.cumulativeProfit.toFixed(2)
+        formatCurrency(results.cumulativeProfit)
     ]];
 
     console.log(createTable(summaryHeaders, summaryRows, {
@@ -224,14 +227,14 @@ function continueSimulate(targetMultiplier, numberOfBets, initialBet = 1, betMul
     const lastWinIndex = results.winningBetAmounts.length - 1;
     const winningRoundEntries = lastWinIndex >= 0
         ? {
-            'Winning Round Bet': results.winningBetAmounts[lastWinIndex].toFixed(2),
-            'Win Amount': results.winningPayouts[lastWinIndex].toFixed(2)
+            'Winning Round Bet': formatCurrency(results.winningBetAmounts[lastWinIndex]),
+            'Win Amount': formatCurrency(results.winningPayouts[lastWinIndex])
         }
         : {};
 
     const details = {
         'Target Multiplier': `${targetMultiplier.toFixed(2)}x`,
-        'Initial Bet': initialBet.toFixed(2),
+        'Initial Bet': formatCurrency(initialBet),
         ...winningRoundEntries,
         [`P(X≥${targetMultiplier.toFixed(2)}, n=${numberOfBets})`]: `${(winProbability * 100).toFixed(2)}%`,
         'Bet Multiplier': `${betMultiplier.toFixed(2)}x`,

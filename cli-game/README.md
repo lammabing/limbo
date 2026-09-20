@@ -173,7 +173,7 @@ node cli-game/continue-game.js <targetMultiplier> <numberOfBets> [initialBet] [b
 
 **Output:**
 - **Summary table**: Rounds, Wins, Losses, Total Bets, Start Balance, Final Balance, Profit, Cumulative Profit
-- **Details table**: Target Multiplier, Initial Bet, Winning Round Bet and Win Amount (shown when at least one win occurred), win probability P(X≥target, n=bets), Bet Multiplier, Start/Final Nonce
+- **Details table**: Target Multiplier, Initial Bet, Winning Multiplier, Winning Round Bet and Win Amount (shown when at least one win occurred), win probability P(X≥target, n=bets), Bet Multiplier, Start/Final Nonce
 - All numeric values and amounts are displayed with two decimal places
 
 ---

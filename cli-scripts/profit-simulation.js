@@ -97,7 +97,7 @@ module.exports = { simulateProfit };
 
 // CLI functionality to allow calling from command line
 if (require.main === module) {
-    const { createTable, createSectionHeader, createKeyValueTable } = require('./table-utils.js');
+    const { createTable, createSectionHeader, createKeyValueTable, formatCurrency } = require('./table-utils.js');
 
     // If called directly from command line
     if (process.argv.length < 5 || process.argv.length > 6) { // node profit-simulation.js + 3-4 arguments
@@ -126,16 +126,16 @@ if (require.main === module) {
         const headers = ['Rounds', 'Total Bets', 'Win Bet', 'Payout', 'Profit', 'Final Balance', 'Status'];
         const statusColor = results.gameOver ? '\x1b[31mGame Over\x1b[0m' : '\x1b[32mWon\x1b[0m';
         const profitDisplay = results.profit >= 0 
-            ? `+${results.profit.toFixed(2)}` 
-            : results.profit.toFixed(2);
+            ? `+${formatCurrency(results.profit)}` 
+            : formatCurrency(results.profit);
         
         const rows = [[
             results.roundsPlayed,
-            results.totalBets.toFixed(2),
-            results.winBetAmount.toFixed(2),
-            results.payout.toFixed(2),
+            formatCurrency(results.totalBets),
+            formatCurrency(results.winBetAmount),
+            formatCurrency(results.payout),
             profitDisplay,
-            results.finalBalance.toFixed(2),
+            formatCurrency(results.finalBalance),
             statusColor
         ]];
         
@@ -147,7 +147,7 @@ if (require.main === module) {
         console.log(createSectionHeader('Game Details'));
         const details = {
             'Target Multiplier': `${m}x`,
-            'Initial Bet': results.initialBet.toFixed(2),
+            'Initial Bet': formatCurrency(results.initialBet),
             'Winning Round': results.numberOfBets,
             'Actual Multiplier': `${results.multiplier.toFixed(2)}x`,
             'Client Seed': results.clientSeed,

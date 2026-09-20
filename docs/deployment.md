@@ -50,7 +50,7 @@ npm install
 npm start
 ```
 
-The application will be available at `http://localhost:3000`.
+The application will be available at `http://localhost:3145`.
 
 ## Production Deployment
 
@@ -68,7 +68,7 @@ Create a `.env` file in the project root:
 
 ```env
 NODE_ENV=production
-PORT=3000
+PORT=3145
 ```
 
 3. **Start the Application**
@@ -106,7 +106,7 @@ module.exports = {
     exec_mode: 'cluster',
     env: {
       NODE_ENV: 'production',
-      PORT: 3000
+      PORT: 3145
     },
     error_file: './logs/err.log',
     out_file: './logs/out.log',
@@ -333,7 +333,7 @@ RUN npm install --production
 
 COPY . .
 
-EXPOSE 3000
+EXPOSE 3145
 
 CMD ["npm", "start"]
 ```
@@ -347,7 +347,7 @@ docker build -t limbo-game .
 ### 3. Run the Docker Container
 
 ```bash
-docker run -p 3000:3000 -d limbo-game
+docker run -p 3145:3145 -d limbo-game
 ```
 
 ### 4. Using Docker Compose
@@ -361,9 +361,10 @@ services:
   limbo-game:
     build: .
     ports:
-      - "3000:3000"
+      - "3145:3145"
     environment:
       - NODE_ENV=production
+      - PORT=3145
     restart: unless-stopped
 ```
 
@@ -381,7 +382,7 @@ The application can be configured using environment variables:
 
 ```env
 NODE_ENV=production
-PORT=3000
+PORT=3145
 LOG_LEVEL=info
 ```
 

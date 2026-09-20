@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+out/
+
+# Build resources (generated)
+build/icon.ico
+build/icon.icns
+build/*.png
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Session data (user-specific)
+game-session.json
+
+# Coverage
+coverage/
+
+# Electron
+*.asar

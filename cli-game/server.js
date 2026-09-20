@@ -156,8 +156,8 @@ async function handleRunSimulation(req, res) {
         if (!initialBet || initialBet < 1) {
             return sendJSON(res, 400, { error: 'Initial bet must be at least 1' });
         }
-        if (!betMultiplier || betMultiplier < 1) {
-            return sendJSON(res, 400, { error: 'Bet multiplier must be at least 1' });
+        if (!betMultiplier || betMultiplier < 1.001) {
+            return sendJSON(res, 400, { error: 'Bet multiplier must be at least 1.001' });
         }
         if (!numberOfBets || numberOfBets < 1) {
             return sendJSON(res, 400, { error: 'Number of bets must be at least 1' });
@@ -172,7 +172,7 @@ async function handleRunSimulation(req, res) {
         const results = {
             targetMultiplier: parseFloat(targetMultiplier.toFixed(2)),
             initialBet: roundBetAmount(initialBet, gameState.roundDownMonetaryValues),
-            betMultiplier: parseFloat(betMultiplier.toFixed(2)),
+            betMultiplier: parseFloat(betMultiplier.toFixed(3)),
             numberOfBets: parseInt(numberOfBets),
             startNonce: gameState.nonce,
             finalNonce: null,
@@ -182,6 +182,7 @@ async function handleRunSimulation(req, res) {
             losses: 0,
             winningBetAmounts: [],
             winningPayouts: [],
+            winningMultipliers: [],
             startingBalance: gameState.balance,
             finalBalance: null
         };
@@ -208,9 +209,11 @@ async function handleRunSimulation(req, res) {
                 payout = roundMonetaryValue(originalBetAmount * targetMultiplier, roundDown);
                 currentBet = roundMonetaryValue(initialBet, roundDown);
                 results.wins++;
-                // Record the bet amount that was placed on this winning round and its win amount
+                // Record the bet amount placed on this winning round, its win amount,
+                // and the actual multiplier outcome rolled for the round
                 results.winningBetAmounts.push(originalBetAmount);
                 results.winningPayouts.push(payout);
+                results.winningMultipliers.push(multiplier);
             } else {
                 currentBet = roundMonetaryValue(currentBet * betMultiplier, roundDown);
                 results.losses++;
@@ -249,7 +252,7 @@ async function handleRunSimulation(req, res) {
             simulationParams: {
                 targetMultiplier: parseFloat(targetMultiplier.toFixed(2)),
                 initialBet: roundBetAmount(initialBet, roundDown),
-                betMultiplier: parseFloat(betMultiplier.toFixed(2)),
+                betMultiplier: parseFloat(betMultiplier.toFixed(3)),
                 numberOfBets: parseInt(numberOfBets)
             },
             results,
@@ -275,6 +278,9 @@ async function handleRunSimulation(req, res) {
                     : null,
                 winAmount: results.winningPayouts.length > 0
                     ? results.winningPayouts[results.winningPayouts.length - 1]
+                    : null,
+                winningMultiplier: results.winningMultipliers.length > 0
+                    ? results.winningMultipliers[results.winningMultipliers.length - 1]
                     : null,
                 startNonce: results.startNonce,
                 finalNonce: results.finalNonce,

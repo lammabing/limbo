@@ -42,18 +42,48 @@ The Limbo Game follows a client-server architecture with clear separation of con
 
 ```
 limbo-game/
+├── cli-scripts/            # CLI tools and utility scripts
+│   ├── compare-providers.js    # Compare crypto providers
+│   ├── cost-calculation.js     # Cost calculation functions
+│   ├── csv-display.js          # CSV data display utility
+│   ├── init-game.js            # Initialize game session
+│   ├── multi-outcome-generator.js  # Multiple outcome generator
+│   ├── outcome-generator.js    # Outcome generator
+│   ├── outcome-range.js        # Outcome range analysis
+│   ├── outcome-until-threshold.js  # Generate until threshold
+│   ├── profit-calculation.js   # Profit calculation functions
+│   ├── profit-simulation.js    # Profit simulation functions
+│   ├── random-string-samples.js    # Random string samples
+│   ├── randomStringGenerator.js    # Random string generator
+│   ├── README.md               # CLI scripts documentation
+│   ├── repeat-script.js        # Script repetition utility
+│   ├── reset-game.js           # Reset game session
+│   ├── table-utils.js          # Table formatting utilities
+│   └── view-game-session.js    # View game session data
+├── cli-game/               # Command-line game interface
+│   ├── limbo               # Shell script wrapper
+│   ├── init-game.js        # CLI game initialization
+│   ├── continue-game.js    # CLI game continuation
+│   └── game-session.json   # Game session storage
+├── csv-output/             # Generated CSV files from CLI tools
 ├── public/                 # Static files served by Express
 │   ├── index.html         # Main application HTML
 │   ├── script.js          # Client-side JavaScript
-│   └── style.css          # Application styles
+│   ├── style.css          # Application styles
+│   └── verifier.html      # Bet verifier interface
 ├── docs/                  # Documentation
-│   ├── api.md            # API documentation
-│   ├── user-guide.md      # User guide
+│   ├── compare-providers.md    # Provider comparison guide
+│   ├── deployment.md      # Deployment instructions
 │   ├── developer-guide.md # Developer documentation
-│   └── deployment.md     # Deployment instructions
-├── crypto.bch.js         # Provably fair algorithm implementation
+│   └── user-guide.md      # User guide
+├── crypto.bch.js         # Provably fair algorithm (BCH implementation)
+├── crypto.bustadice.js   # Provably fair algorithm (Bustadice implementation)
+├── crypto.provider.js    # Crypto provider abstraction
+├── crypto.stake.js       # Provably fair algorithm (Stake implementation)
+├── get-results.js        # Results retrieval utility
 ├── server.js             # Express server and API endpoints
-├── package.json          # Project dependencies and scripts
+├── package.json          # Dependencies and scripts
+├── package-lock.json     # Locked dependency versions
 └── README.md             # Project overview
 ```
 
@@ -118,21 +148,50 @@ app.post('/play', async (req, res) => {
 
 ### 4. Cryptographic Module (`crypto.bch.js`)
 
-The provably fair algorithm implementation:
+The provably fair algorithm implementation uses generator functions:
 
 ```javascript
 function getMultiplier(nonce, clientSeed = '', serverSeed = '', houseEdge = 0.02) {
-    // Generate HMAC-SHA256 hash
-    const hmac = crypto.createHmac('sha256', serverSeed);
-    hmac.update(`${clientSeed}:${nonce}:${currentRound}`);
-    const buffer = hmac.digest();
-    
-    // Convert to float and calculate multiplier
-    const float = bytesToFloat(buffer);
+    // Generator for HMAC-SHA256 bytes
+    function* bytesGenerator(serverSeed, clientSeed, nonce) {
+        let currentRound = 0;
+        let currentRoundCursor = 0;
+
+        while (true) {
+            const hmac = crypto.createHmac('sha256', serverSeed);
+            hmac.update(`${clientSeed}:${nonce}:${currentRound}`);
+            const buffer = hmac.digest();
+
+            while (currentRoundCursor < 32) {
+                yield buffer[currentRoundCursor];
+                currentRoundCursor += 1;
+            }
+
+            currentRoundCursor = 0;
+            currentRound += 1;
+        }
+    }
+
+    // Generator for floating point numbers
+    function* floatsGenerator(serverSeed, clientSeed, nonce) {
+        const byteRng = bytesGenerator(serverSeed, clientSeed, nonce);
+
+        while (true) {
+            const bytes = Array(4).fill(0).map(() => byteRng.next().value);
+            const float = bytes.reduce((result, value, i) => {
+                const divider = 256 ** (i + 1);
+                return result + (value / divider);
+            }, 0);
+            yield float;
+        }
+    }
+
+    // Calculate multiplier with house edge
+    const float = floatsGenerator(serverSeed, clientSeed, nonce).next().value;
     const m = 100_000_000;
     const n = Math.floor(float * m) + 1;
     const crashPoint = Math.max((m / n) * (1 - houseEdge), 1);
-    
+
     return Math.floor(crashPoint * 100) / 100;
 }
 ```
@@ -360,9 +419,59 @@ npm start
 {
   "scripts": {
     "start": "node server.js",
+    "start:bustadice": "CRYPTO_PROVIDER=bustadice node server.js",
+    "start:stake": "CRYPTO_PROVIDER=stake node server.js",
+    "generate:bch": "node cli-scripts/outcome-generator.js",
+    "generate:bustadice": "CRYPTO_PROVIDER=bustadice node cli-scripts/outcome-generator.js",
+    "generate:stake": "CRYPTO_PROVIDER=stake node cli-scripts/outcome-generator.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
+```
+
+## CLI Tools
+
+The project includes extensive CLI tools for outcome generation, profit simulation, and game session management.
+
+### Game Session Management
+
+- `init-game.js`: Initialize a new game session with fixed seeds
+- `continue-simulate.js`: Continue simulation with martingale strategy
+- `reset-game.js`: Reset game session
+- `view-game-session.js`: View current session data
+
+### Outcome Generation
+
+- `outcome-generator.js`: Generate outcomes for specified rounds
+- `multi-outcome-generator.js`: Run multiple iterations
+- `outcome-range.js`: Analyze outcomes within a range
+- `outcome-until-threshold.js`: Generate until threshold reached
+
+### Profit & Cost Analysis
+
+- `profit-calculation.js`: Calculate profit for betting systems
+- `profit-simulation.js`: Simulate betting with provably fair mechanics
+- `cost-calculation.js`: Calculate total bet costs
+
+### Utilities
+
+- `randomStringGenerator.js`: Generate random strings
+- `compare-providers.js`: Compare crypto providers
+- `csv-display.js`: Display CSV data
+- `table-utils.js`: Table formatting
+
+See `cli-scripts/README.md` for detailed usage instructions.
+
+### CLI Game
+
+The `cli-game/` directory contains a terminal-based version of the limbo game:
+
+```bash
+# Start with default balance
+./cli-game/limbo
+
+# Start with custom balance
+./cli-game/limbo 5000
 ```
 
 ## Testing

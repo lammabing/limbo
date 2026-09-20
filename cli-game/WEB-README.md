@@ -41,7 +41,7 @@ The web interface will be available at: **http://localhost:3146**
 ### 3. View Results
 
 - **Summary Statistics**: Rounds, wins, losses, total bets, start/final balance, profit, cumulative profit
-- **Winning Round Info**: Bet amount placed on the winning round and the win amount paid out (bet x target multiplier) - shown when at least one win occurred
+- **Winning Round Info**: Actual multiplier rolled on the winning round, the bet amount placed on it, and the win amount paid out (bet x target multiplier) - shown when at least one win occurred
 - **Session Info**: Current seeds, nonce, balance, and session count
 
 ## API Endpoints

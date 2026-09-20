@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 Limbo CLI Game - Web Interface</title>
+    <title>🎮 Limbo Game Simulator - Offline</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' font-size='80'><text y='.9em' x='50%' text-anchor='middle'>🎮</text></svg>">
     <style>
         * {
@@ -176,6 +176,16 @@
             box-shadow: 0 5px 20px rgba(255, 71, 87, 0.4);
         }
 
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(108, 117, 125, 0.4);
+        }
+
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -186,6 +196,7 @@
             display: flex;
             gap: 10px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
 
         .status-box {
@@ -234,8 +245,7 @@
             max-height: 400px;
             overflow-y: auto;
             font-family: 'Fira Code', Consolas, Monaco, monospace;
-            font-size: 1rem;
-            font-weight: 600;
+            font-size: 0.85rem;
             white-space: pre-wrap;
             word-break: break-all;
         }
@@ -320,16 +330,6 @@
             font-size: 0.85rem;
         }
 
-        .seed-display {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            word-break: break-all;
-            margin-top: 5px;
-        }
-
         .progress-bar {
             width: 100%;
             height: 8px;
@@ -377,6 +377,13 @@
             height: 1px;
             background: rgba(255, 255, 255, 0.1);
             margin: 20px 0;
+        }
+
+        .app-info {
+            text-align: center;
+            color: #a0a0a0;
+            font-size: 0.85rem;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -431,7 +438,7 @@
                         </div>
                         <div class="form-group-inline">
                             <label for="betMultiplier">Multiplier</label>
-                            <input type="number" id="betMultiplier" name="betMultiplier" value="1" min="1.001" step="0.001">
+                            <input type="number" id="betMultiplier" name="betMultiplier" value="1" min="1" step="0.1">
                         </div>
                         <div class="form-group-inline">
                             <label for="numberOfBets">Bets</label>
@@ -452,6 +459,16 @@
             </div>
         </div>
 
+        <!-- File Operations Card -->
+        <div class="card">
+            <h2>💾 Session Management</h2>
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="exportSession()">Export Session</button>
+                <button class="btn btn-secondary" onclick="importSession()">Import Session</button>
+                <button class="btn btn-primary" onclick="showSessionInfo()">Session Info</button>
+            </div>
+        </div>
+
         <!-- Output Section -->
         <div class="card output-section">
             <div id="resultsSummary" class="hidden">
@@ -468,10 +485,6 @@
                         <div class="status-row">
                             <span class="status-label">Losses:</span>
                             <span class="status-value negative" id="resultLosses">0</span>
-                        </div>
-                        <div class="status-row">
-                            <span class="status-label">Total Bets:</span>
-                            <span class="status-value" id="resultTotalBets">0</span>
                         </div>
                         <div class="status-row">
                             <span class="status-label">Start Balance:</span>
@@ -512,95 +525,21 @@
                 <button class="btn btn-danger" onclick="resetGame()">Reset Game</button>
             </div>
         </div>
+
+        <div class="app-info">
+            <p>🖥️ Running in offline mode • Session data is stored locally</p>
+        </div>
     </div>
 
     <script>
         // Game state management
         let gameState = null;
 
+        // Check if running in Electron
+        const isElectron = window.electronAPI && window.electronAPI.isElectron;
+
         // API base URL (empty for same origin)
         const API_BASE = '';
-
-        // API helper functions
-        async function apiRequest(endpoint, method = 'GET', body = null) {
-            const options = {
-                method,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            };
-            if (body) {
-                options.body = JSON.stringify(body);
-            }
-
-            const response = await fetch(`${API_BASE}${endpoint}`, options);
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Request failed');
-            }
-
-            return data;
-        }
-
-        // Initialize game session via API
-        async function initGame(startingBalance, roundDownValues, clientSeed, serverSeed) {
-            const response = await apiRequest('/api/init', 'POST', {
-                startingBalance,
-                roundDownMonetaryValues: roundDownValues,
-                clientSeed: clientSeed || undefined,
-                serverSeed: serverSeed || undefined
-            });
-
-            gameState = response.gameState;
-
-            // Save to localStorage for persistence
-            localStorage.setItem('limboGameState', JSON.stringify(gameState));
-
-            // Update UI immediately to show reset values
-
-            addLog(`Game session initialized! Balance: ${startingBalance}, Nonce: 0`, 'info');
-            addLog(`Client Seed: ${gameState.clientSeed}`, 'info');
-            addLog(`Server Seed: ${gameState.serverSeed}`, 'info');
-            showAlert('Game session initialized successfully!', 'success');
-
-            return gameState;
-        }
-
-        // Get current game state via API
-        async function loadGameStateFromServer() {
-            try {
-                const response = await apiRequest('/api/state', 'GET');
-                gameState = response.gameState;
-                localStorage.setItem('limboGameState', JSON.stringify(gameState));
-                return gameState;
-            } catch (error) {
-                return null;
-            }
-        }
-
-        // Reset game via API
-        async function resetGameAPI() {
-            await apiRequest('/api/reset', 'POST');
-            gameState = null;
-            localStorage.removeItem('limboGameState');
-        }
-
-        // Utility functions (for local calculations if needed)
-        function roundMonetaryValue(value, roundDown) {
-            if (roundDown) {
-                return Math.floor(value);
-            }
-            return value;
-        }
-
-        function roundBetAmount(value, roundDown) {
-            if (roundDown) {
-                const roundedValue = Math.floor(value);
-                return Math.max(1, roundedValue);
-            }
-            return value;
-        }
 
         // Alert system
         function showAlert(message, type = 'info') {
@@ -630,6 +569,46 @@
             document.getElementById('outputLog').innerHTML = '';
         }
 
+        // Initialize game session
+        async function initGame(startingBalance, roundDownValues, clientSeed, serverSeed) {
+            try {
+                let response;
+                if (isElectron) {
+                    response = await window.electronAPI.initGame({
+                        startingBalance,
+                        roundDownMonetaryValues: roundDownValues,
+                        clientSeed: clientSeed || undefined,
+                        serverSeed: serverSeed || undefined
+                    });
+                } else {
+                    const res = await fetch(`${API_BASE}/api/init`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            startingBalance,
+                            roundDownMonetaryValues: roundDownValues,
+                            clientSeed: clientSeed || undefined,
+                            serverSeed: serverSeed || undefined
+                        })
+                    });
+                    response = await res.json();
+                    if (!res.ok) throw new Error(response.error);
+                }
+
+                gameState = response;
+
+                addLog(`Game session initialized! Balance: ${startingBalance}, Nonce: 0`, 'info');
+                addLog(`Client Seed: ${gameState.clientSeed}`, 'info');
+                addLog(`Server Seed: ${gameState.serverSeed}`, 'info');
+                showAlert('Game session initialized successfully!', 'success');
+
+                return gameState;
+            } catch (error) {
+                showAlert(`Initialization failed: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
         // Run simulation
         async function runSimulation(targetMultiplier, initialBet, betMultiplier, numberOfBets) {
             if (!gameState) {
@@ -644,7 +623,24 @@
             document.getElementById('progressText').textContent = 'Running...';
 
             try {
-                const results = await apiRunSimulation(targetMultiplier, initialBet, betMultiplier, numberOfBets);
+                let results;
+                if (isElectron) {
+                    results = await window.electronAPI.runSimulation({
+                        targetMultiplier,
+                        initialBet,
+                        betMultiplier,
+                        numberOfBets
+                    });
+                } else {
+                    const res = await fetch(`${API_BASE}/api/simulate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ targetMultiplier, initialBet, betMultiplier, numberOfBets })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    results = data.results;
+                }
 
                 // Update progress to complete
                 document.getElementById('progressFill').style.width = '100%';
@@ -675,23 +671,12 @@
         // Render result tables as HTML
         function renderResultTables(results, targetMultiplier, initialBet, betMultiplier, numberOfBets) {
             const logBox = document.getElementById('outputLog');
-            const profitDisplay = results.profit >= 0 ? `+${results.profit.toFixed(2)}` : results.profit.toFixed(2);
-            const cumProfitDisplay = results.cumulativeProfit >= 0 ? `+${results.cumulativeProfit.toFixed(2)}` : results.cumulativeProfit.toFixed(2);
+            const profitDisplay = results.profit >= 0 ? `+${results.profit}` : results.profit;
+            const cumProfitDisplay = results.cumulativeProfit >= 0 ? `+${results.cumulativeProfit}` : results.cumulativeProfit;
             const profitClass = results.profit >= 0 ? 'positive' : 'negative';
             const winProbability = probAtLeastOne(targetMultiplier, numberOfBets);
 
-            // Show the actual multiplier rolled on the winning round, along with the bet
-            // amount placed on that round and its win amount, only when at least one win
-            // occurred (same behaviour as continue-game.js)
-            const winningRows = results.winningRoundBet !== null && results.winningRoundBet !== undefined
-                ? `<tr><td>Winning Multiplier</td><td>${results.winningMultiplier.toFixed(2)}x</td></tr>` +
-                  `<tr><td>Winning Round Bet</td><td>${results.winningRoundBet.toFixed(2)}</td></tr>` +
-                  `<tr><td>Win Amount</td><td>${results.winAmount.toFixed(2)}</td></tr>`
-                : '';
-
-            const summaryTable = `<table><thead><tr><th>Rounds</th><th>Wins</th><th>Losses</th><th>Total Bets</th><th>Start Balance</th><th>Final Balance</th><th>Profit</th><th>Cumulative Profit</th></tr></thead><tbody><tr><td>${results.rounds}</td><td>${results.wins}</td><td>${results.losses}</td><td>${results.totalBets.toFixed(2)}</td><td>${results.startBalance.toFixed(2)}</td><td>${results.finalBalance.toFixed(2)}</td><td class="${profitClass}">${profitDisplay}</td><td class="${results.cumulativeProfit >= 0 ? 'positive' : 'negative'}">${cumProfitDisplay}</td></tr></tbody></table>`;
-            const detailsTable = `<table><thead><tr><th>Property</th><th>Value</th></tr></thead><tbody><tr><td>Target Multiplier</td><td>${targetMultiplier.toFixed(2)}x</td></tr><tr><td>Initial Bet</td><td>${initialBet.toFixed(2)}</td></tr>${winningRows}<tr><td>P(X≥${targetMultiplier.toFixed(2)}, n=${numberOfBets})</td><td>${(winProbability * 100).toFixed(2)}%</td></tr><tr><td>Bet Multiplier</td><td>${betMultiplier.toFixed(3)}x</td></tr><tr><td>Start Nonce</td><td>${results.startNonce}</td></tr><tr><td>Final Nonce</td><td>${results.finalNonce}</td></tr></tbody></table>`;
-            const tablesHtml = `<div class="result-tables">${summaryTable}${detailsTable}${results.endedEarly ? `<div class="result-message">${results.endedReason}</div>` : ''}</div>`;
+            const tablesHtml = `<div class="result-tables"><table><thead><tr><th>Rounds</th><th>Wins</th><th>Losses</th><th>Start Balance</th><th>Final Balance</th><th>Profit</th><th>Cumulative Profit</th></tr></thead><tbody><tr><td>${results.rounds}</td><td>${results.wins}</td><td>${results.losses}</td><td>${results.startBalance.toFixed(0)}</td><td>${results.finalBalance.toFixed(0)}</td><td class="${profitClass}">${profitDisplay}</td><td class="${results.cumulativeProfit >= 0 ? 'positive' : 'negative'}">${cumProfitDisplay}</td></tr></tbody></table><table><thead><tr><th>Property</th><th>Value</th></tr></thead><tbody><tr><td>Target Multiplier</td><td>${targetMultiplier}x</td></tr><tr><td>Initial Bet</td><td>${initialBet}</td></tr><tr><td>P(X≥${targetMultiplier}, n=${numberOfBets})</td><td>${(winProbability * 100).toFixed(4)}%</td></tr><tr><td>Bet Multiplier</td><td>${betMultiplier}x</td></tr><tr><td>Start Nonce</td><td>${results.startNonce}</td></tr><tr><td>Final Nonce</td><td>${results.finalNonce}</td></tr></tbody></table>${results.endedEarly ? `<div class="result-message">${results.endedReason}</div>` : ''}</div>`;
 
             const entry = document.createElement('div');
             entry.className = 'log-entry info';
@@ -700,36 +685,12 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        // API-based simulation that streams results
-        async function apiRunSimulation(targetMultiplier, initialBet, betMultiplier, numberOfBets) {
-            const response = await fetch(`${API_BASE}/api/simulate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ targetMultiplier, initialBet, betMultiplier, numberOfBets })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Simulation failed');
-            }
-
-            // Update local game state
-            gameState.nonce = data.gameState.nonce;
-            gameState.balance = data.gameState.balance;
-            gameState.cumulativeProfit = data.gameState.cumulativeProfit;
-            localStorage.setItem('limboGameState', JSON.stringify(gameState));
-
-            return data.results;
-        }
-
         // Display results
         function displayResults(results) {
             document.getElementById('resultsSummary').classList.remove('hidden');
             document.getElementById('resultRounds').textContent = results.rounds;
             document.getElementById('resultWins').textContent = results.wins;
             document.getElementById('resultLosses').textContent = results.losses;
-            document.getElementById('resultTotalBets').textContent = results.totalBets.toFixed(2);
             document.getElementById('resultStartBalance').textContent = results.startBalance.toFixed(2);
             document.getElementById('resultFinalBalance').textContent = results.finalBalance.toFixed(2);
 
@@ -749,7 +710,13 @@
         async function resetGame() {
             if (confirm('Are you sure you want to reset the game? This will clear all session data.')) {
                 try {
-                    await resetGameAPI();
+                    if (isElectron) {
+                        await window.electronAPI.resetGame();
+                    } else {
+                        await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
+                    }
+                    
+                    gameState = null;
                     document.getElementById('resultsSummary').classList.add('hidden');
                     document.getElementById('progressSection').classList.add('hidden');
                     clearLog();
@@ -761,24 +728,117 @@
             }
         }
 
-        // Load saved game state
-        async function loadGameState() {
-            // Try to load from server first
-            const serverState = await loadGameStateFromServer();
-            if (serverState) {
-                addLog(`Loaded session from server. Nonce: ${serverState.nonce}, Balance: ${serverState.balance.toFixed(2)}`, 'info');
+        // Export session to file
+        async function exportSession() {
+            if (!gameState) {
+                showAlert('No active session to export!', 'error');
                 return;
             }
 
-            // Fallback to localStorage
-            const saved = localStorage.getItem('limboGameState');
-            if (saved) {
-                try {
-                    gameState = JSON.parse(saved);
-                    addLog(`Loaded existing session. Nonce: ${gameState.nonce}, Balance: ${gameState.balance.toFixed(2)}`, 'info');
-                } catch (e) {
-                    console.error('Failed to load game state:', e);
+            if (isElectron) {
+                const result = await window.electronAPI.saveSessionFile({
+                    defaultPath: `limbo-session-${Date.now()}.json`
+                });
+                if (result.success) {
+                    showAlert(`Session exported to: ${result.filePath}`, 'success');
+                    addLog(`Session exported to ${result.filePath}`, 'info');
+                } else if (!result.canceled) {
+                    showAlert(`Export failed: ${result.error}`, 'error');
                 }
+            } else {
+                // Browser fallback - download as file
+                const blob = new Blob([JSON.stringify(gameState, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `limbo-session-${Date.now()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showAlert('Session exported successfully!', 'success');
+            }
+        }
+
+        // Import session from file
+        async function importSession() {
+            if (isElectron) {
+                const result = await window.electronAPI.loadSessionFile();
+                if (result.success) {
+                    gameState = result.gameState;
+                    showAlert('Session imported successfully!', 'success');
+                    addLog(`Session imported. Balance: ${gameState.balance.toFixed(2)}, Nonce: ${gameState.nonce}`, 'info');
+                } else if (!result.canceled) {
+                    showAlert(`Import failed: ${result.error}`, 'error');
+                }
+            } else {
+                // Browser fallback - file input
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        try {
+                            const text = await file.text();
+                            gameState = JSON.parse(text);
+                            showAlert('Session imported successfully!', 'success');
+                            addLog(`Session imported. Balance: ${gameState.balance.toFixed(2)}, Nonce: ${gameState.nonce}`, 'info');
+                        } catch (error) {
+                            showAlert(`Import failed: ${error.message}`, 'error');
+                        }
+                    }
+                };
+                input.click();
+            }
+        }
+
+        // Show session info
+        function showSessionInfo() {
+            if (!gameState) {
+                showAlert('No active session!', 'error');
+                return;
+            }
+
+            const info = `
+Session Information:
+━━━━━━━━━━━━━━━━━━━━
+Balance: ${gameState.balance.toFixed(2)}
+Cumulative Profit: ${gameState.cumulativeProfit.toFixed(2)}
+Nonce: ${gameState.nonce}
+Client Seed: ${gameState.clientSeed}
+Server Seed: ${gameState.serverSeed}
+Round Down Values: ${gameState.roundDownMonetaryValues ? 'Yes' : 'No'}
+
+Statistics:
+━━━━━━━━━━━━━━━━━━━━
+Total Bets: ${gameState.stats.totalBets}
+Wins: ${gameState.stats.wins}
+Losses: ${gameState.stats.losses}
+Total Wagered: ${gameState.stats.totalWagered.toFixed(2)}
+Net Profit: ${gameState.stats.netProfit.toFixed(2)}
+            `.trim();
+
+            addLog(info, 'info');
+        }
+
+        // Load game state
+        async function loadGameState() {
+            try {
+                let response;
+                if (isElectron) {
+                    response = await window.electronAPI.getGameState();
+                } else {
+                    const res = await fetch(`${API_BASE}/api/state`);
+                    response = await res.json();
+                }
+
+                if (response) {
+                    gameState = response;
+                    if (gameState && gameState.balance !== undefined) {
+                        addLog(`Loaded existing session. Nonce: ${gameState.nonce}, Balance: ${gameState.balance.toFixed(2)}`, 'info');
+                    }
+                }
+            } catch (error) {
+                console.log('No existing session found');
             }
         }
 
@@ -814,8 +874,8 @@
                 showAlert('Initial bet must be at least 1', 'error');
                 return;
             }
-            if (betMultiplier < 1.001) {
-                showAlert('Bet multiplier must be at least 1.001', 'error');
+            if (betMultiplier < 1) {
+                showAlert('Bet multiplier must be at least 1', 'error');
                 return;
             }
             if (numberOfBets < 1) {

@@ -162,7 +162,10 @@ function createSectionHeader(title, options = {}) {
  * @returns {string} Formatted currency string
  */
 function formatCurrency(value, currency = '$', decimals = 2) {
-    return `${currency}${Number(value).toFixed(decimals)}`;
+    return currency + Number(value).toLocaleString('en-US', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+    });
 }
 
 /**

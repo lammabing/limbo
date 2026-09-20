@@ -1,0 +1,14 @@
+FROM scottyhardy/docker-wine:latest
+
+RUN wget -q https://nodejs.org/dist/v20.18.0/node-v20.18.0-linux-x64.tar.gz && \
+    tar -xzf node-v20.18.0-linux-x64.tar.gz -C /usr/local --strip-components=1 && \
+    rm node-v20.18.0-linux-x64.tar.gz
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN npm run build:win

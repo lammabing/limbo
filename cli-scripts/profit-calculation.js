@@ -51,7 +51,7 @@ module.exports = { calculateProfit };
 
 // CLI functionality to allow calling from command line
 if (require.main === module) {
-    const { createTable, createSectionHeader } = require('./table-utils.js');
+    const { createTable, createSectionHeader, formatCurrency } = require('./table-utils.js');
 
     // If called directly from command line
     if (process.argv.length !== 6) { // node profit-calculation.js + 4 arguments
@@ -78,10 +78,10 @@ if (require.main === module) {
         
         const headers = ['Total Bets', 'Win Bet Amount', 'Payout', 'Profit'];
         const rows = [[
-            results.totalBets.toFixed(2),
-            results.winBetAmount.toFixed(2),
-            results.payout.toFixed(2),
-            results.profit >= 0 ? `+${results.profit.toFixed(2)}` : results.profit.toFixed(2)
+            formatCurrency(results.totalBets),
+            formatCurrency(results.winBetAmount),
+            formatCurrency(results.payout),
+            results.profit >= 0 ? `+${formatCurrency(results.profit)}` : formatCurrency(results.profit)
         ]];
         
         console.log(createTable(headers, rows, { 

@@ -19,29 +19,47 @@ The game simulates a crypto betting experience where players can place bets on m
 ```
 /mnt/g/www/limbo/
 ├── cli-scripts/            # CLI tools and utility scripts
-│   ├── cost-calculation.js # Cost calculation functions
-│   ├── multi-outcome-generator.js # Multiple outcome generator
-│   ├── outcome-generator.js # Outcome generator
-│   ├── profit-calculation.js # Profit calculation functions
-│   ├── profit-simulation.js # Profit simulation functions
-│   ├── random-string-samples.js # Random string examples with clipboard support
-│   └── randomStringGenerator.js # Random string generation utility
+│   ├── compare-providers.js    # Compare crypto providers
+│   ├── cost-calculation.js     # Cost calculation functions
+│   ├── csv-display.js          # CSV data display utility
+│   ├── init-game.js            # Initialize game session
+│   ├── multi-outcome-generator.js  # Multiple outcome generator
+│   ├── outcome-generator.js    # Outcome generator
+│   ├── outcome-range.js        # Outcome range analysis
+│   ├── outcome-until-threshold.js  # Generate until threshold
+│   ├── profit-calculation.js   # Profit calculation functions
+│   ├── profit-simulation.js    # Profit simulation functions
+│   ├── random-string-samples.js    # Random string samples
+│   ├── randomStringGenerator.js    # Random string generator
+│   ├── README.md               # CLI scripts documentation
+│   ├── repeat-script.js        # Script repetition utility
+│   ├── reset-game.js           # Reset game session
+│   ├── table-utils.js          # Table formatting utilities
+│   └── view-game-session.js    # View game session data
+├── cli-game/               # Command-line game interface
+│   ├── limbo               # Shell script wrapper
+│   ├── init-game.js        # CLI game initialization
+│   ├── continue-game.js    # CLI game continuation
+│   └── game-session.json   # Game session storage
 ├── csv-output/             # Generated CSV files from CLI tools
 ├── public/                 # Static files served by Express
 │   ├── index.html         # Main application HTML
 │   ├── script.js          # Client-side JavaScript
-│   └── style.css          # Application styles
+│   ├── style.css          # Application styles
+│   └── verifier.html      # Bet verifier interface
 ├── docs/                  # Documentation
-│   ├── api.md            # API documentation
-│   ├── user-guide.md      # User guide
+│   ├── compare-providers.md    # Provider comparison guide
+│   ├── deployment.md      # Deployment instructions
 │   ├── developer-guide.md # Developer documentation
-│   └── deployment.md     # Deployment instructions
+│   └── user-guide.md      # User guide
 ├── crypto.bch.js         # Provably fair algorithm implementation (BCH)
 ├── crypto.bustadice.js   # Alternative crypto algorithm implementation (Bustadice)
 ├── crypto.provider.js    # Crypto provider abstraction
 ├── crypto.stake.js       # Alternative crypto algorithm implementation (Stake)
+├── get-results.js        # Results retrieval utility
 ├── server.js             # Express server and API endpoints
 ├── package.json          # Project dependencies and scripts
+├── package-lock.json     # Locked dependency versions
 └── README.md             # Project overview
 ```
 
@@ -83,21 +101,50 @@ The server implements RESTful endpoints for game operations:
 
 ### 3. Cryptographic Module (`crypto.bch.js`)
 
-The provably fair algorithm implementation:
+The provably fair algorithm implementation uses generator functions for efficient byte and float generation:
 
 ```javascript
 function getMultiplier(nonce, clientSeed = '', serverSeed = '', houseEdge = 0.02) {
-    // Generate HMAC-SHA256 hash
-    const hmac = crypto.createHmac('sha256', serverSeed);
-    hmac.update(`${clientSeed}:${nonce}:${currentRound}`);
-    const buffer = hmac.digest();
-    
-    // Convert to float and calculate multiplier
-    const float = bytesToFloat(buffer);
+    // Generator for HMAC-SHA256 bytes
+    function* bytesGenerator(serverSeed, clientSeed, nonce) {
+        let currentRound = 0;
+        let currentRoundCursor = 0;
+
+        while (true) {
+            const hmac = crypto.createHmac('sha256', serverSeed);
+            hmac.update(`${clientSeed}:${nonce}:${currentRound}`);
+            const buffer = hmac.digest();
+
+            while (currentRoundCursor < 32) {
+                yield buffer[currentRoundCursor];
+                currentRoundCursor += 1;
+            }
+
+            currentRoundCursor = 0;
+            currentRound += 1;
+        }
+    }
+
+    // Generator for floating point numbers
+    function* floatsGenerator(serverSeed, clientSeed, nonce) {
+        const byteRng = bytesGenerator(serverSeed, clientSeed, nonce);
+
+        while (true) {
+            const bytes = Array(4).fill(0).map(() => byteRng.next().value);
+            const float = bytes.reduce((result, value, i) => {
+                const divider = 256 ** (i + 1);
+                return result + (value / divider);
+            }, 0);
+            yield float;
+        }
+    }
+
+    // Calculate multiplier with house edge
+    const float = floatsGenerator(serverSeed, clientSeed, nonce).next().value;
     const m = 100_000_000;
     const n = Math.floor(float * m) + 1;
     const crashPoint = Math.max((m / n) * (1 - houseEdge), 1);
-    
+
     return Math.floor(crashPoint * 100) / 100;
 }
 ```
@@ -148,7 +195,7 @@ Start the server:
 npm start
 ```
 
-The application will be available at `http://localhost:3000`.
+The application will be available at `http://localhost:3145`.
 
 ### Development Scripts
 
@@ -168,52 +215,111 @@ The application will be available at `http://localhost:3000`.
 
 ## CLI Tools
 
-The project includes command-line tools for generating game outcomes and utility functions, now organized in the `cli-scripts` directory:
+The project includes comprehensive command-line tools for generating game outcomes, simulating betting strategies, and managing game sessions.
 
-1. `outcome-generator.js`: Generates outcomes for a specified number of rounds
+### Game Session Management
+
+1. `init-game.js`: Initializes a game session by generating and fixing seeds
+   ```bash
+   node cli-scripts/init-game.js
+   ```
+
+2. `continue-simulate.js`: Continues a game simulation using fixed seeds
+   ```bash
+   node cli-scripts/continue-simulate.js <targetMultiplier> <initialBet> <betMultiplier> <numberOfBets>
+   ```
+
+3. `reset-game.js`: Resets the game session
+   ```bash
+   node cli-scripts/reset-game.js
+   ```
+
+4. `view-game-session.js`: Displays current game session information
+   ```bash
+   node cli-scripts/view-game-session.js
+   ```
+
+### Outcome Generation & Analysis
+
+5. `outcome-generator.js`: Generates outcomes for specified number of rounds
    ```bash
    node cli-scripts/outcome-generator.js <rounds> [threshold] [clientSeed] [serverSeed]
    ```
+   Creates CSV files in `csv-output/`:
+   - `outcomes-<timestamp>.csv`: All round multipliers (columns: `Round,Multiplier`)
+   - `highest-outcomes.csv`: Highest multiplier per session
+   - `runtime-<timestamp>.csv`: Run-time length analysis
 
-   This script creates CSV files in the `csv-output/` directory with the following structure:
-   - `outcomes-<timestamp>.csv`: Contains all round multipliers with columns `Round,Multiplier`
-   - `highest-outcomes.csv`: Contains the highest multiplier achieved per session with columns `Round,Multiplier,TotalRounds`
-   - `runtime-<timestamp>.csv`: Contains run-time length analysis with columns `Run,Length,BelowThreshold`
-
-2. `multi-outcome-generator.js`: Runs multiple iterations of outcome generation
+6. `multi-outcome-generator.js`: Runs multiple iterations of outcome generation
    ```bash
    node cli-scripts/multi-outcome-generator.js <iterations> <rounds> [threshold]
    ```
 
-3. `profit-calculation.js`: Calculates profit for betting systems based on geometric progression
+7. `outcome-range.js`: Analyzes outcomes within a specific range
+   ```bash
+   node cli-scripts/outcome-range.js
+   ```
+
+8. `outcome-until-threshold.js`: Generates outcomes until threshold is reached
+   ```bash
+   node cli-scripts/outcome-until-threshold.js
+   ```
+
+### Profit & Cost Calculations
+
+9. `profit-calculation.js`: Calculates profit for betting systems
    ```bash
    node cli-scripts/profit-calculation.js <w> <m> <x> <a>
    ```
 
-4. `profit-simulation.js`: Simulates betting systems with provably fair mechanics using the unified crypto provider module
-   ```bash
-   node cli-scripts/profit-simulation.js <m> <x> <a>
-   ```
+10. `profit-simulation.js`: Simulates betting systems with provably fair mechanics
+    ```bash
+    node cli-scripts/profit-simulation.js <m> <x> <a> [startingBalance]
+    ```
 
-5. `cost-calculation.js`: Calculates total cost of bets based on initial bet, multiplier, and number of bets
-   ```bash
-   node cli-scripts/cost-calculation.js <initialBet> <betMultiplier> <numberOfBets>
-   ```
+11. `cost-calculation.js`: Calculates total cost of bets
+    ```bash
+    node cli-scripts/cost-calculation.js <initialBet> <betMultiplier> <numberOfBets>
+    ```
 
-6. `randomStringGenerator.js`: Generates random strings with configurable options
-   ```bash
-   node cli-scripts/randomStringGenerator.js
-   ```
+### Utility Scripts
 
-7. `random-string-samples.js`: Demonstrates various configurations of the random string generator with clipboard support
-   ```bash
-   node cli-scripts/random-string-samples.js
-   ```
+12. `randomStringGenerator.js`: Generates random strings
+    ```bash
+    node cli-scripts/randomStringGenerator.js
+    ```
 
-8. `compare-providers.js`: Compares outcomes from different crypto providers using the same seeds
-   ```bash
-   node cli-scripts/compare-providers.js <rounds> [clientSeed] [serverSeed]
-   ```
+13. `random-string-samples.js`: Random string samples with clipboard support
+    ```bash
+    node cli-scripts/random-string-samples.js
+    ```
+
+14. `compare-providers.js`: Compares outcomes from different crypto providers
+    ```bash
+    node cli-scripts/compare-providers.js <rounds> [clientSeed] [serverSeed]
+    ```
+
+15. `csv-display.js`: Displays CSV data from generated outcomes
+    ```bash
+    node cli-scripts/csv-display.js
+    ```
+
+16. `table-utils.js`: Table formatting utilities
+    ```bash
+    node cli-scripts/table-utils.js
+    ```
+
+17. `repeat-script.js`: Script repetition utility
+    ```bash
+    node cli-scripts/repeat-script.js
+    ```
+
+### CLI Game (`cli-game/`)
+
+The `cli-game/` directory contains a command-line interface version:
+- `limbo`: Shell script wrapper
+- `init-game.js`: Initialize CLI game
+- `continue-game.js`: Continue CLI game
 
 ## Development Conventions
 
@@ -257,7 +363,7 @@ The project includes comprehensive documentation:
 - `docs/user-guide.md`: Detailed instructions for using the game
 - `docs/developer-guide.md`: Technical information for developers
 - `docs/deployment.md`: Instructions for deploying the application
-- `docs/api.md`: API endpoint documentation (if available)
+- `docs/compare-providers.md`: Crypto provider comparison guide
 
 ## Contributing
 

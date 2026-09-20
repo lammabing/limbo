@@ -1,0 +1,104 @@
+{
+  "name": "limbo-game-simulator",
+  "version": "1.0.0",
+  "description": "Limbo Game Simulator - Provably Fair Crypto Game Offline Desktop Application",
+  "main": "src/main.js",
+  "author": "Limbo Game Team",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "NODE_ENV=development electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win --x64",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --mac --linux",
+    "pack": "electron-builder --dir",
+    "clean": "rm -rf dist",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "electron": "^33.4.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.limbogame.simulator",
+    "productName": "Limbo Game Simulator",
+    "directories": {
+      "output": "/tmp/limbo-dist",
+      "buildResources": "build"
+    },
+    "afterSign": null,
+    "afterPack": null,
+    "files": [
+      "src/**/*",
+      "public/**/*",
+      "../crypto.provider.js",
+      "../crypto.bch.js",
+      "../crypto.bustadice.js",
+      "../crypto.stake.js",
+      "../cli-scripts/randomStringGenerator.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../cli-scripts",
+        "to": "cli-scripts",
+        "filter": ["randomStringGenerator.js"]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "dir",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.games"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build",
+      "category": "Game"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
+    }
+  },
+  "keywords": [
+    "limbo",
+    "crypto",
+    "game",
+    "simulator",
+    "provably-fair",
+    "betting"
+  ]
+}

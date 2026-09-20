@@ -29,12 +29,14 @@ function main() {
 
     // Check for suppress flag and remove it from args to avoid affecting positional arguments
     const suppressRounds = args.includes('--suppress-rounds');
-    const filteredArgs = args.filter(arg => arg !== '--suppress-rounds');
+    const noCsv = args.includes('--no-csv');
+    const filteredArgs = args.filter(arg => arg !== '--suppress-rounds' && arg !== '--no-csv');
 
     if (filteredArgs.length < 1) {
-        console.log('Usage: node outcome-generator.js <rounds> [threshold] [clientSeed] [serverSeed] [--suppress-rounds]');
+        console.log('Usage: node outcome-generator.js <rounds> [threshold] [clientSeed] [serverSeed] [--suppress-rounds] [--no-csv]');
         console.log('Example: node outcome-generator.js 10 2.0 abc123 def456');
         console.log('Example with suppressed rounds: node outcome-generator.js 10 2.0 abc123 def456 --suppress-rounds');
+        console.log('Example without CSV output: node outcome-generator.js 10 2.0 abc123 def456 --no-csv');
         process.exit(1);
     }
 
@@ -91,8 +93,12 @@ function main() {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const outputFile = path.join(outputDir, `outcomes-${timestamp}.csv`);
     
-    fs.writeFileSync(outputFile, csvContent);
-    console.log(`\nOutcomes saved to ${outputFile}`);
+    if (!noCsv) {
+        fs.writeFileSync(outputFile, `ClientSeed,${clientSeed}\nServerSeed,${serverSeed}\n${csvContent}`);
+        console.log(`\nOutcomes saved to ${outputFile}`);
+    } else {
+        console.log('\nCSV output disabled');
+    }
 
     // Display highest outcome
     console.log(`\nHighest outcome: Round ${highestRound} with ${highestMultiplier}x`);
@@ -101,10 +107,12 @@ function main() {
     displayTopOutcomes(csvContent);
 
     // Append highest outcome to highest-outcomes.csv
-    appendHighestOutcomeToCSV(highestRound, highestMultiplier, n);
+    if (!noCsv) {
+        appendHighestOutcomeToCSV(highestRound, highestMultiplier, n, clientSeed, serverSeed);
+    }
 
     if (threshold !== null) {
-        const runTimeLengths = getRunTimeLengths(threshold, n, outputFile);
+        const runTimeLengths = getRunTimeLengthsFromMemory(threshold, n, csvContent);
         console.log(`\nRun time lengths below ${threshold}:`);
         runTimeLengths.forEach((length, index) => {
             if (index === runTimeLengths.length - 1 && length === -1) {
@@ -113,11 +121,14 @@ function main() {
                 console.log(`Run ${index + 1}: ${length} rounds`);
             }
         });
-        
-        // Write run-time lengths to a separate CSV file with the same timestamp
-        const runTimeOutputFile = outputFile.replace('outcomes-', 'runtime-');
-        writeRunTimeLengthsToCSV(runTimeOutputFile, runTimeLengths, threshold);
-        console.log(`\nRun-time lengths saved to ${runTimeOutputFile}`);
+
+        if (!noCsv) {
+            // Write run-time lengths to a separate CSV file with the same timestamp
+            const timestamp2 = new Date().toISOString().replace(/[:.]/g, '-');
+            const runTimeOutputFile = path.join(outputDir, `runtime-${timestamp2}.csv`);
+            writeRunTimeLengthsToCSV(runTimeOutputFile, runTimeLengths, threshold, clientSeed, serverSeed);
+            console.log(`\nRun-time lengths saved to ${runTimeOutputFile}`);
+        }
     }
 }
 
@@ -147,6 +158,10 @@ function displayTopOutcomes(csvContent) {
 
 function getRunTimeLengths(threshold, totalRounds, outputFile) {
     const csvContent = fs.readFileSync(outputFile, 'utf8');
+    return getRunTimeLengthsFromMemory(threshold, totalRounds, csvContent);
+}
+
+function getRunTimeLengthsFromMemory(threshold, totalRounds, csvContent) {
     const lines = csvContent.trim().split('\n');
     const runTimeLengths = [];
     let count = 0;
@@ -170,9 +185,9 @@ function getRunTimeLengths(threshold, totalRounds, outputFile) {
     return runTimeLengths;
 }
 
-function writeRunTimeLengthsToCSV(baseOutputFile, runTimeLengths, threshold) {
+function writeRunTimeLengthsToCSV(baseOutputFile, runTimeLengths, threshold, clientSeed, serverSeed) {
     // Create CSV content for run-time lengths
-    let csvContent = `Run,Length,BelowThreshold\n`;
+    let csvContent = `ClientSeed,${clientSeed}\nServerSeed,${serverSeed}\nRun,Length,BelowThreshold\n`;
     
     runTimeLengths.forEach((length, index) => {
         // Replace -1 with 'X' to indicate ongoing run without hitting threshold
@@ -184,7 +199,8 @@ function writeRunTimeLengthsToCSV(baseOutputFile, runTimeLengths, threshold) {
     fs.writeFileSync(baseOutputFile, csvContent);
 }
 
-function appendHighestOutcomeToCSV(round, multiplier, totalRounds) {
+function appendHighestOutcomeToCSV(round, multiplier, totalRounds, clientSeed, serverSeed) {
+    const seedRow = `ClientSeed,${clientSeed}\nServerSeed,${serverSeed}\n`;
     const csvHeader = 'Round,Multiplier,TotalRounds\n';
     const csvRow = `${round},${multiplier},${totalRounds}\n`;
     const outputDir = path.join(__dirname, '..', 'csv-output');
@@ -198,7 +214,7 @@ function appendHighestOutcomeToCSV(round, multiplier, totalRounds) {
     
     // Write header if file doesn't exist, otherwise append just the row
     if (!fs.existsSync(outputFile)) {
-        fs.writeFileSync(outputFile, csvHeader + csvRow);
+        fs.writeFileSync(outputFile, seedRow + csvHeader + csvRow);
     } else {
         fs.appendFileSync(outputFile, csvRow);
     }

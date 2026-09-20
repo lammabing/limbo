@@ -115,32 +115,19 @@ Calculates the probability that at least one of n repeated trials attains a valu
 Based on the limbo distribution: `P(X >= x) = 1/x` for a single trial.
 Formula: `P(at least one >= x in n trials) = 1 - (1 - 1/x)^n`
 
-**Parameters:**
-- `x`: Target threshold (>= 1)
-- `n`: Single number of trials, or `[nMin] [nMax]` for a range
-- `format`: Output format — `table` (default) or `column`
-
-**Usage:**
-```bash
-node cli-scripts/prob-xn.js <x> <n> [format]
-node cli-scripts/prob-xn.js <x> <nMin> <nMax> [format]
-```
-
-### prob-xn-edge.js
-Same as `prob-xn.js` but factors in house edge. Default house edge is `0.02` (2%), sourced from `crypto.bch.js` where `crashPoint = (m / n) * (1 - houseEdge)`.
-
-Formula: `P(at least one >= x in n trials) = 1 - (1 - (1 - edge) / x)^n`
+With a house edge `e` factored in, the per-trial probability becomes `(1 - e) / x`:
+`P(at least one >= x in n trials) = 1 - (1 - (1 - e) / x)^n`
 
 **Parameters:**
 - `x`: Target threshold (>= 1)
 - `n`: Single number of trials, or `[nMin] [nMax]` for a range
-- `--edge <value>`: House edge (default: 0.02, requires 0 <= edge < 1)
+- `edge`: Optional house edge as a fraction, e.g. `0.01` for 1% (default: 0). Any argument in `[0, 1)` after the trials is treated as the edge.
 - `format`: Output format — `table` (default) or `column`
 
 **Usage:**
 ```bash
-node cli-scripts/prob-xn-edge.js <x> <n> [--edge <value>] [format]
-node cli-scripts/prob-xn-edge.js <x> <nMin> <nMax> [--edge <value>] [format]
+node cli-scripts/prob-xn.js <x> <n> [edge] [format]
+node cli-scripts/prob-xn.js <x> <nMin> <nMax> [edge] [format]
 ```
 
 ### probability-utils.js

@@ -48,7 +48,7 @@ function calculateTotalBets(initialBet, betMultiplier, numberOfBets) {
 
 // If this file is run directly, handle command-line arguments
 if (require.main === module) {
-    const { createTable, createSectionHeader, createKeyValueTable } = require('./table-utils.js');
+    const { createTable, createSectionHeader, createKeyValueTable, formatCurrency } = require('./table-utils.js');
     
     const args = process.argv.slice(2); // Get command line arguments, excluding node path and script name
 
@@ -85,7 +85,7 @@ if (require.main === module) {
             
             // Input parameters table
             const inputParams = {
-                'Initial Bet': result.initialBet !== undefined ? result.initialBet.toFixed(2) : initialBet.toFixed(2),
+                'Initial Bet': formatCurrency(result.initialBet !== undefined ? result.initialBet : initialBet),
                 'Bet Multiplier': `${betMultiplier}x`,
                 'Number of Bets': numberOfBets
             };
@@ -94,8 +94,8 @@ if (require.main === module) {
             // Results table
             const headers = ['Total Bets', 'Final Bet'];
             const rows = [[
-                result.totalBets.toFixed(2),
-                result.finalBet.toFixed(2)
+                formatCurrency(result.totalBets),
+                formatCurrency(result.finalBet)
             ]];
             console.log(createTable(headers, rows, { 
                 columnAlignments: { 0: 'right', 1: 'right' }

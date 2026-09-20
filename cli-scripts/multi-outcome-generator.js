@@ -1,5 +1,5 @@
 const { spawn } = require('child_process');
-const crypto = require('crypto');
+const path = require('path');
 
 function generateRandomSeed(length = 32) {
     // Declare all characters
@@ -14,16 +14,24 @@ function generateRandomSeed(length = 32) {
     return str;
 }
 
-function runOutcomeGenerator(clientSeed, serverSeed, rounds, threshold = null) {
+function runOutcomeGenerator(clientSeed, serverSeed, rounds, threshold = null, noCsv = false, suppressRounds = false) {
     return new Promise((resolve, reject) => {
-        const args = ['./cli-scripts/outcome-generator.js', clientSeed, serverSeed, rounds.toString()];
+        const scriptPath = path.join(__dirname, 'outcome-generator.js');
+        const args = [scriptPath, rounds.toString()];
         if (threshold !== null) {
             args.push(threshold.toString());
+        }
+        args.push(clientSeed, serverSeed);
+        if (noCsv) {
+            args.push('--no-csv');
+        }
+        if (suppressRounds) {
+            args.push('--suppress-rounds');
         }
 
         const child = spawn('node', args, {
             stdio: 'inherit',
-            cwd: process.cwd()
+            cwd: __dirname
         });
 
         child.on('close', (code) => {
@@ -42,16 +50,20 @@ function runOutcomeGenerator(clientSeed, serverSeed, rounds, threshold = null) {
 
 async function main() {
     const args = process.argv.slice(2);
-    if (args.length < 2) {
-        console.log('Usage: node multi-outcome-generator.js <iterations> <rounds> [threshold]');
-        console.log('Example: node multi-outcome-generator.js 3 10 2.0');
+    const noCsv = args.includes('--no-csv');
+    const suppressRounds = args.includes('--suppress-rounds') || args.includes('--suppress-output');
+    const filteredArgs = args.filter(arg => arg !== '--no-csv' && arg !== '--suppress-rounds' && arg !== '--suppress-output');
+
+    if (filteredArgs.length < 2) {
+        console.log('Usage: node multi-outcome-generator.js <iterations> <rounds> [threshold] [--no-csv] [--suppress-rounds]');
+        console.log('Example: node multi-outcome-generator.js 3 10 2.0 --no-csv');
         console.log('This will run 3 iterations, each with 10 rounds, analyzing threshold 2.0');
         process.exit(1);
     }
 
-    const iterations = parseInt(args[0], 10);
-    const rounds = parseInt(args[1], 10);
-    const threshold = args.length > 2 ? parseFloat(args[2]) : null;
+    const iterations = parseInt(filteredArgs[0], 10);
+    const rounds = parseInt(filteredArgs[1], 10);
+    const threshold = filteredArgs.length > 2 ? parseFloat(filteredArgs[2]) : null;
 
     if (isNaN(iterations) || iterations <= 0) {
         console.log('Error: iterations must be a positive integer');
@@ -75,7 +87,7 @@ async function main() {
         console.log(`Server Seed: ${serverSeed}`);
 
         try {
-            await runOutcomeGenerator(clientSeed, serverSeed, rounds, threshold);
+            await runOutcomeGenerator(clientSeed, serverSeed, rounds, threshold, noCsv, suppressRounds);
             console.log(`Iteration ${i} completed successfully`);
         } catch (error) {
             console.error(`Iteration ${i} failed:`, error.message);

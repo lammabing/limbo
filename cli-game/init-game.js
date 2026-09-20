@@ -59,7 +59,7 @@ function initGame(startingBalance = 1000, roundDownMonetaryValues = true) {
 
 // CLI functionality to allow calling from command line
 if (require.main === module) {
-    const { createTable, createKeyValueTable, createSectionHeader } = require('../cli-scripts/table-utils.js');
+    const { createTable, createKeyValueTable, createSectionHeader, formatCurrency } = require('../cli-scripts/table-utils.js');
     
     if (process.argv.length < 2 || process.argv.length > 4) { // node init-game.js + optional args
         console.error('Usage: node init-game.js [startingBalance] [roundDownMonetaryValues]');
@@ -101,7 +101,7 @@ if (require.main === module) {
             'Client Seed': gameState.clientSeed,
             'Server Seed': gameState.serverSeed,
             'Initial Nonce': gameState.nonce,
-            'Starting Balance': gameState.balance.toFixed(2),
+            'Starting Balance': formatCurrency(gameState.balance),
             'Round Down Monetary Values': gameState.roundDownMonetaryValues ? 'Yes' : 'No',
             'Created At': gameState.createdAt,
             'Save File': gameStateFile
