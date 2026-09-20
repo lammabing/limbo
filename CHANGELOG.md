@@ -14,6 +14,8 @@
 - `cli-game/README.md` and `WEB-README.md`: Corrected continue-game.js usage signature and parameter order, replaced stale sample output with current table output (including Total Bets, Winning Round Bet, Win Amount), fixed inaccurate session-history/features/comparison descriptions, and documented function-iteration.js, repeat-script.js, and params.json.
 
 ### Changed
+- `server.js`: Listen on `process.env.PORT` (falling back to 3145) so the app can be deployed to platforms like Render that assign the port dynamically.
+- `server.js`: Removed root-level static file serving (only `public/` is served now) so server source, data files and logs are no longer downloadable by visitors. `classboundaries.json` moved to `public/` (same URL for the client fetch, so no script changes needed).
 - `public/script.js` + `public/index.html`: Target multiplier slider now extends to 1,000,000x (was 10,000x). The 0-100 slider range is split into 3 equal 2-decade segments (1.01x-100x, 100x-10,000x, 10,000x-1,000,000x) for both the manual and auto target sliders; max slider label updated to 1,000,000x.
 - `public/script.js`: AutoBet Speed Mode rounds now run much faster - removed the 100ms delay before ending each round and the 300ms inter-round delay (now 0ms, still yielding to the event loop so the UI repaints and Stop stays responsive). Round rate is now limited only by the `/play` request and per-round DOM updates.
 - `prob-xn.js`: Now supports an optional house edge argument (`probAtLeastOne(x, n, houseEdge)` / CLI arg in `[0, 1)`); per-trial probability becomes `(1 - edge) / x`. Header output displays the edge when set.

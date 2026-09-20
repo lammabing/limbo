@@ -6,7 +6,8 @@ const bodyParser = require('body-parser');
 const { generateRandomString } = require('./cli-scripts/randomStringGenerator.js');
 
 const app = express();
-const port = 3145;
+// Use platform-assigned port (e.g. Render) or default to 3145 for local dev
+const port = process.env.PORT || 3145;
 
 // Set default crypto provider (can be overridden via environment variable)
 // Available providers: 'bch', 'bustadice', 'stake'
@@ -16,14 +17,6 @@ console.log(`Using crypto provider: ${cryptoProvider.getCurrentProvider()}`);
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(__dirname, { 
-    extensions: ['json'],
-    setHeaders: (res, path) => {
-        if (path.endsWith('.json')) {
-            res.setHeader('Content-Type', 'application/json');
-        }
-    }
-}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
