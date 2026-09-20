@@ -14,6 +14,7 @@
 - `cli-game/README.md` and `WEB-README.md`: Corrected continue-game.js usage signature and parameter order, replaced stale sample output with current table output (including Total Bets, Winning Round Bet, Win Amount), fixed inaccurate session-history/features/comparison descriptions, and documented function-iteration.js, repeat-script.js, and params.json.
 
 ### Changed
+- `public/script.js`: AutoBet Speed Mode rounds now run much faster - removed the 100ms delay before ending each round and the 300ms inter-round delay (now 0ms, still yielding to the event loop so the UI repaints and Stop stays responsive). Round rate is now limited only by the `/play` request and per-round DOM updates.
 - `prob-xn.js`: Now supports an optional house edge argument (`probAtLeastOne(x, n, houseEdge)` / CLI arg in `[0, 1)`); per-trial probability becomes `(1 - edge) / x`. Header output displays the edge when set.
 - `prob-xn.js`: Absorbed the functionality of `prob-xn-edge.js` (house-edge-adjusted limbo probabilities), which has been removed as redundant; `cli-scripts/README.md` updated accordingly.
 - `continue-game.js`: All displayed numeric values and amounts (balances, profits, bets, multipliers, win probability) are now formatted to two decimal places.

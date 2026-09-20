@@ -965,10 +965,8 @@ document.addEventListener('DOMContentLoaded', function() {
             elements.multiplierValue.textContent = targetMultiplier.toFixed(2) + 'x';
             elements.gameStatus.textContent = 'Game completed';
             
-            // Small delay to show the status message
-            setTimeout(() => {
-                endAutoGame(targetMultiplier);
-            }, 100);
+            // End the game immediately - no artificial delay
+            endAutoGame(targetMultiplier);
         } else {
             // Normal animation mode
             let currentMultiplier = 1.00;
@@ -1074,8 +1072,9 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTallyDisplay();
         updateRoundsTallyDisplay();
         
-        // Continue with next round after a delay
-        const delay = elements.autoSpeedMode.checked ? 300 : 1000; // Reduced delay for speed mode
+        // Continue with next round immediately (setTimeout 0 yields to the
+        // event loop so the UI can repaint and Stop stays clickable)
+        const delay = elements.autoSpeedMode.checked ? 0 : 1000; // No delay for speed mode
         setTimeout(() => {
             autoBetRound();
         }, delay);
